@@ -53,12 +53,14 @@ func _input(event: InputEvent) -> void:
 	#	set_collision_mask_value(10,true)
 
 func _physics_process(delta: float) -> void:
-	if Input.is_action_pressed("shoot"):
-		shoot()
-	#Gravity
 	if not is_on_floor():
 		velocity.y += gravity * delta
 		player.animation = "Jump"
+		
+	if Input.is_action_pressed("shoot"):
+		shoot()
+	#Gravity
+
 	#Horizontal Movement
 	#var direction = Input.get_axis("ui_left","ui_right")
 	var direction = Input.get_axis("move_left","move_right")
@@ -71,17 +73,16 @@ func _physics_process(delta: float) -> void:
 			velocity.x = move_toward(velocity.x,0,8)
 	move_and_slide()
 	
-	var on_floor = is_on_floor()
-	print(on_floor)
-	if was_on_floor and not on_floor and not has_jumped:
-		fell_off_platform = true
-		print("Fell off platform — jump disabled")
-	
-	if on_floor:
+	if is_on_floor():
 		jump_left = max_jumps
-		has_jumped = false	
-		fell_off_platform = false
+		has_jumped = false
 		air_control_locked = false
+		
+	elif was_on_floor and not has_jumped:
+		jump_left = 0
+	was_on_floor = is_on_floor()
+	
+
 
 	
 	#if Input.is_action_just_pressed('ui_left'):
@@ -89,13 +90,7 @@ func _physics_process(delta: float) -> void:
 		player.flip_h = true
 	elif velocity.x > 0:
 		player.flip_h = false
-		
-	if was_on_floor and not on_floor and not has_jumped:
-		fell_off_platform = true
-		jump_left = 1
-		print("Fell off - jump disabled")
-	
-	was_on_floor = on_floor
+
 	#var is_falling_off = was_on_floor and not on_floor and velocity.y >= 0
 	if(velocity.x > 1 || velocity.x < -1):
 		player.animation = "Sprint"
@@ -133,6 +128,8 @@ func shoot():
 	print("Current bullets: ", current_bullets)
 
 func jump():
+	if jump_left <= 0:
+		return
 	velocity.y = JUMP_VEL - 15
 	jump_left -= 1
 	has_jumped = true
