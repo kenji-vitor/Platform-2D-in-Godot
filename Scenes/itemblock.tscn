@@ -1,0 +1,71 @@
+[gd_scene format=3 uid="uid://c31y6v65ygqvr"]
+
+[ext_resource type="Texture2D" uid="uid://crj1c3qo6iuf8" path="res://Images/Candy Milk tileset.png" id="1_aoq3c"]
+[ext_resource type="PackedScene" uid="uid://cytu5dsxcigyw" path="res://Scenes/crab_item.tscn" id="2_qklbv"]
+
+[sub_resource type="GDScript" id="GDScript_ppwib"]
+script/source = "extends StaticBody2D
+
+@export var crab_item_scene : PackedScene
+var used = false
+	
+func spawn_item():
+	var item = crab_item_scene.instantiate()
+	get_parent().add_child(item)
+	item.global_position = global_position + Vector2(0,-16)		
+
+
+func _on_area_2d_body_entered(body) -> void:
+	print(\"Detectou o player\")
+	if used:
+		return
+	if body.is_in_group(\"player\"):	
+		if body.velocity.y < 0:
+			spawn_item()
+			used = true
+"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qklbv"]
+atlas = ExtResource("1_aoq3c")
+region = Rect2(460, 16, 23, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_vs1ns"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qklbv")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vs1ns"]
+size = Vector2(15, 15.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qklbv"]
+size = Vector2(15, 16)
+
+[node name="Itemblock" type="Node2D" unique_id=372087882]
+script = SubResource("GDScript_ppwib")
+crab_item_scene = ExtResource("2_qklbv")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=966652227]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_vs1ns")
+
+[node name="CollionShape2DBLOCK" type="CollisionShape2D" parent="." unique_id=587012548]
+position = Vector2(0.5, -0.25)
+shape = SubResource("RectangleShape2D_vs1ns")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1657076824]
+position = Vector2(9, 2)
+collision_layer = 2
+
+[node name="CollisionShape2DHeadDetect" type="CollisionShape2D" parent="Area2D" unique_id=214359483]
+position = Vector2(-8, 1)
+shape = SubResource("RectangleShape2D_qklbv")
+one_way_collision = true
+debug_color = Color(0.9416667, 0.13440701, 0.50818497, 0.41960785)
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]

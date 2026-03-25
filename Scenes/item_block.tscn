@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://tsd86ebuuim"]
+
+[ext_resource type="Script" uid="uid://br0ayrxw6ims5" path="res://Scripts/ItemBlock.gd" id="1_bllxr"]
+[ext_resource type="Texture2D" uid="uid://crj1c3qo6iuf8" path="res://Images/Candy Milk tileset.png" id="2_klubw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_umdj1"]
+atlas = ExtResource("2_klubw")
+region = Rect2(464, 16, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_n83gy"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_umdj1")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5ggn6"]
+size = Vector2(16, 15)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bvq0v"]
+size = Vector2(17, 6)
+
+[node name="ItemBlock" type="StaticBody2D" unique_id=923666528]
+script = ExtResource("1_bllxr")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1340017089]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_n83gy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=106286341]
+position = Vector2(0, -0.5)
+shape = SubResource("RectangleShape2D_5ggn6")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1701555853]
+
+[node name="CollisionShape2DDetect" type="CollisionShape2D" parent="Area2D" unique_id=1361179171]
+position = Vector2(-0.5, 7)
+shape = SubResource("RectangleShape2D_bvq0v")
+debug_color = Color(0.95213944, 0.07665386, 0.517226, 0.41960785)
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]

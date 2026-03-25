@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://bsh7ew4vhmrt"]
+
+[ext_resource type="Script" uid="uid://3bfgfq10i342" path="res://Scripts/weapon_1.gd" id="1_och2e"]
+[ext_resource type="Texture2D" uid="uid://ctrx3l4dm8oet" path="res://Images/Trap and Weapon/00 All.png" id="2_7k1uh"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_a6xam"]
+radius = 7.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_las8u"]
+atlas = ExtResource("2_7k1uh")
+region = Rect2(437, 256, 23, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_a6xam"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_las8u")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Weapon1" type="CharacterBody2D" unique_id=809533841]
+texture_filter = 1
+script = ExtResource("1_och2e")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1415517982]
+position = Vector2(-1, 0)
+shape = SubResource("CapsuleShape2D_a6xam")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1044899351]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_a6xam")

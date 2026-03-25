@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cytu5dsxcigyw"]
+
+[ext_resource type="Texture2D" uid="uid://q3r4uu2epx3o" path="res://Images/SAMPLE PACK - Pixel Gnome Fishing Pack/SAMPLE A - Pixel Gnome Fish Pack - Salt Water Sprite Sheet.png" id="1_mqdat"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q85xu"]
+size = Vector2(12, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l18yc"]
+atlas = ExtResource("1_mqdat")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wxyjx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l18yc")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="CrabItem" type="Node2D" unique_id=243433941]
+
+[node name="Area2D" type="Area2D" parent="." unique_id=61027518]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=653899149]
+position = Vector2(0, 1.5)
+shape = SubResource("RectangleShape2D_q85xu")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1944908426]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_wxyjx")
