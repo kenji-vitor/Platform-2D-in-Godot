@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
-const SPEED = 100.0
-const JUMP_VEL = -300.0
+var SPEED = 100.0
+var JUMP_VEL = -300.0
 @onready var player: AnimatedSprite2D = $AnimatedSprite2D
 @export var max_jumps = 2
 @onready var shoot_point = $ShootPoint
@@ -19,16 +19,39 @@ var current_bullets = 0
 var fire_cooldown = 0.2
 var can_shoot = true
 
+
+#Difficulty
+var code_sequence = ["h","a","r","d"]
+var code_progress = 0
+var classic = false #Oldschool movement
+
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 @onready var weapon1_scene = preload("res://Scenes/weapon_1.tscn")
 
 var spawn_position: Vector2
+
+
+var is_running = false
 
 func _ready() -> void:
 	spawn_position = global_position
 	jump_left = max_jumps
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		var key = OS.get_keycode_string(event.keycode).to_lower()
+		if key == code_sequence[code_progress]:
+			code_progress += 1
+			if code_progress == code_sequence.size():
+				classic = not classic
+				code_progress = 0
+				if classic:
+					is_running = false #Remove sprinting from classic mode
+				print("Classic Controllers!!", classic)
+		else:
+			code_progress = 0
+		
+	
 	#print("Jump left: ", jump_left)
 	if Input.is_action_just_pressed("jump") and Input.is_action_pressed("down") and jump_left > 0:
 		drop_through_platform()
@@ -45,6 +68,9 @@ func _input(event: InputEvent) -> void:
 		else:
 			#air_direction = Input.get_axis("ui_left","ui_right")
 			air_direction = Input.get_axis("move_left","move_right")
+	if not classic:
+		if Input.is_action_just_pressed("run"):
+			is_running = not is_running
 
 	#if Input.is_action_just_pressed("down"):
 	#	await get_tree().create_timer(0.3)
@@ -64,13 +90,19 @@ func _physics_process(delta: float) -> void:
 	#Horizontal Movement
 	#var direction = Input.get_axis("ui_left","ui_right")
 	var direction = Input.get_axis("move_left","move_right")
-	if air_control_locked:
-		velocity.x = air_direction * SPEED
-	else:
-		if direction:
-			velocity.x = direction * SPEED
+	var current_speed = SPEED + 40 if is_running else SPEED
+	if classic:
+		if air_control_locked:
+			velocity.x = air_direction * current_speed
 		else:
-			velocity.x = move_toward(velocity.x,0,8)
+			movement(direction,current_speed)
+			#if direction:
+			#	velocity.x = direction * current_speed
+			#else:
+				#velocity.x = move_toward(velocity.x,0,8)
+	else:
+		movement(direction,current_speed)
+		
 	move_and_slide()
 	
 	if is_on_floor():
@@ -99,6 +131,12 @@ func _physics_process(delta: float) -> void:
 	
 	if global_position.y > 1000:
 		die()
+
+func movement(direction,current_speed):
+	if direction:
+		velocity.x = direction * current_speed
+	else:
+		velocity.x = move_toward(velocity.x,0,8)
 
 func shoot():
 	if current_bullets >= max_bullet or not can_shoot:
