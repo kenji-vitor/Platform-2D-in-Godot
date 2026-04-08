@@ -38,7 +38,7 @@ func _ready() -> void:
 	jump_left = max_jumps
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed:
+	if event is InputEventKey and event.pressed and classic == false:
 		var key = OS.get_keycode_string(event.keycode).to_lower()
 		if key == code_sequence[code_progress]:
 			code_progress += 1
@@ -79,6 +79,9 @@ func _input(event: InputEvent) -> void:
 	#	set_collision_mask_value(10,true)
 
 func _physics_process(delta: float) -> void:
+	#var parallax = get_parent().get_node("$ParallaxBackground")
+	#aparallax.scroll_offset.y = global_position.y
+	
 	if not is_on_floor():
 		velocity.y += gravity * delta
 		player.animation = "Jump"
@@ -106,12 +109,13 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	
 	if is_on_floor():
+		
 		jump_left = max_jumps
 		has_jumped = false
 		air_control_locked = false
 		
 	elif was_on_floor and not has_jumped:
-		jump_left = 0
+		jump_left = 1
 	was_on_floor = is_on_floor()
 	
 
@@ -129,7 +133,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		player.animation = "Idle"
 	
-	if global_position.y > 1000:
+	if global_position.y > 1500:
 		die()
 
 func movement(direction,current_speed):
@@ -139,6 +143,7 @@ func movement(direction,current_speed):
 		velocity.x = move_toward(velocity.x,0,8)
 
 func shoot():
+	print(global_position)
 	if current_bullets >= max_bullet or not can_shoot:
 		return
 	can_shoot = false

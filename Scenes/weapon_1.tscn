@@ -4,7 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://ctrx3l4dm8oet" path="res://Images/Trap and Weapon/00 All.png" id="2_7k1uh"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_a6xam"]
-radius = 7.0
+radius = 5.0
+height = 16.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_las8u"]
 atlas = ExtResource("2_7k1uh")
@@ -31,4 +32,6 @@ shape = SubResource("CapsuleShape2D_a6xam")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1044899351]
 texture_filter = 1
+position = Vector2(-1, 0)
+scale = Vector2(0.5, 0.5)
 sprite_frames = SubResource("SpriteFrames_a6xam")

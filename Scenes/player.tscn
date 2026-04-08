@@ -233,9 +233,8 @@ autoplay = "Idle"
 frame_progress = 0.4867574
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1074089931]
-position = Vector2(-327, -243)
 offset = Vector2(-15, 0)
-anchor_mode = 0
 zoom = Vector2(1.5, 1.5)
+position_smoothing_enabled = true
 
 [node name="ShootPoint" type="Marker2D" parent="." unique_id=1222780682]
