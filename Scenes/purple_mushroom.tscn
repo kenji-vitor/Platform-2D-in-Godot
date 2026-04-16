@@ -1,0 +1,179 @@
+[gd_scene format=3 uid="uid://cd0u2vqig0txy"]
+
+[ext_resource type="Script" uid="uid://csvxy6jhcymky" path="res://Scripts/purple_mushroom.gd" id="1_f5edn"]
+[ext_resource type="Texture2D" uid="uid://dj1mg7t82h8i5" path="res://Images/Free Mushrooms/Mushroom_Reg.png" id="2_fkkin"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qqvbs"]
+radius = 10.049875
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_xb8hc"]
+parameter_name = "ColorParameter"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeBooleanParameter" id="VisualShaderNodeBooleanParameter_a45c0"]
+parameter_name = "enabled"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeIf" id="VisualShaderNodeIf_s6lcu"]
+default_input_values = [0, 0.0, 1, 1.0, 2, 1e-05, 3, Vector3(0, 0, 0), 4, Vector3(0, 0, 0), 5, Vector3(0, 0, 0)]
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_xb8hc"]
+input_name = "color"
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_asn8g"]
+output_port_for_preview = 0
+parameter_name = "tint"
+default_value_enabled = true
+
+[sub_resource type="VisualShader" id="VisualShader_f5edn"]
+mode = 1
+flags/light_only = false
+nodes/vertex/0/position = Vector2(400, 160)
+nodes/vertex/2/node = SubResource("VisualShaderNodeColorParameter_asn8g")
+nodes/vertex/2/position = Vector2(0, 220)
+nodes/fragment/2/node = SubResource("VisualShaderNodeColorParameter_xb8hc")
+nodes/fragment/2/position = Vector2(-200, 480)
+nodes/fragment/3/node = SubResource("VisualShaderNodeBooleanParameter_a45c0")
+nodes/fragment/3/position = Vector2(-320, 180)
+nodes/fragment/4/node = SubResource("VisualShaderNodeIf_s6lcu")
+nodes/fragment/4/position = Vector2(120, 180)
+nodes/fragment/5/node = SubResource("VisualShaderNodeInput_xb8hc")
+nodes/fragment/5/position = Vector2(20, 700)
+nodes/fragment/connections = PackedInt32Array(3, 0, 4, 0, 2, 0, 4, 3, 4, 0, 0, 0, 5, 0, 4, 4, 5, 0, 4, 5)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8sq3t"]
+shader = SubResource("VisualShader_f5edn")
+shader_parameter/enabled = false
+shader_parameter/ColorParameter = Color(1, 1, 1, 1)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8sq3t"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ypaw2"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_awsis"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rusyx"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(96, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_io81f"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(128, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sn583"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(160, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_787qx"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(192, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_blldy"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(224, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_coafp"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(256, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_f5edn"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fkkin"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qqvbs"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ot03a"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ot03a"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8sq3t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ypaw2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_awsis")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rusyx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_io81f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sn583")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_787qx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_blldy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_coafp")
+}],
+"loop": false,
+"name": &"Jump",
+"speed": 12.67
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f5edn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fkkin")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qqvbs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ot03a")
+}],
+"loop": false,
+"name": &"Move",
+"speed": 8.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f5edn"]
+
+[node name="PurpleMushroom" type="CharacterBody2D" unique_id=1958609275 groups=["enemy"]]
+collision_layer = 0
+collision_mask = 256
+script = ExtResource("1_f5edn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1296220786]
+position = Vector2(0, 4)
+shape = SubResource("CircleShape2D_qqvbs")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1311450351]
+texture_filter = 1
+material = SubResource("ShaderMaterial_8sq3t")
+position = Vector2(-1, -2)
+scale = Vector2(0.9375, 0.9375)
+sprite_frames = SubResource("SpriteFrames_ot03a")
+animation = &"Jump"
+
+[node name="Area2D" type="Area2D" parent="." unique_id=68470310]
+position = Vector2(0, 4)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1607340879]
+shape = SubResource("RectangleShape2D_f5edn")
+debug_color = Color(0.522849, 0.49879992, 0.755948, 0.41960785)
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]

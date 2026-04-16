@@ -215,7 +215,11 @@ animations = [{
 "speed": 20.0
 }]
 
-[node name="CharacterBody2D" type="CharacterBody2D" unique_id=406442816 groups=["player"]]
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fkybt"]
+radius = 6.0
+height = 18.0
+
+[node name="Player" type="CharacterBody2D" unique_id=406442816 groups=["player"]]
 collision_layer = 257
 collision_mask = 768
 script = ExtResource("1_fkybt")
@@ -228,9 +232,8 @@ shape = SubResource("CapsuleShape2D_wn11k")
 texture_filter = 1
 position = Vector2(1, -4)
 sprite_frames = SubResource("SpriteFrames_knmac")
-animation = &"Idle"
+animation = &"Jump"
 autoplay = "Idle"
-frame_progress = 0.4867574
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1074089931]
 offset = Vector2(-15, 0)
@@ -238,3 +241,13 @@ zoom = Vector2(1.5, 1.5)
 position_smoothing_enabled = true
 
 [node name="ShootPoint" type="Marker2D" parent="." unique_id=1222780682]
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1575999253]
+position = Vector2(0, -2)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=93089322]
+position = Vector2(0, 1)
+shape = SubResource("CapsuleShape2D_fkybt")
+debug_color = Color(0.9321811, 0.07483768, 0.6161672, 0.41960785)
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]

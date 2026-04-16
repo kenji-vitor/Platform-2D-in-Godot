@@ -1,10 +1,14 @@
-extends CharacterBody2D
+extends "res://Scripts/entity.gd"
 
 var SPEED = 100.0
 var JUMP_VEL = -300.0
 @onready var player: AnimatedSprite2D = $AnimatedSprite2D
-@export var max_jumps = 2
+
+
+
 @onready var shoot_point = $ShootPoint
+
+@export var max_jumps: int = 2
 var jump_left : int = 2
 
 var has_jumped = false
@@ -16,7 +20,7 @@ var air_control_locked = false
 
 var max_bullet = 40
 var current_bullets = 0
-var fire_cooldown = 0.2
+var fire_cooldown = 0.4
 var can_shoot = true
 
 
@@ -84,7 +88,14 @@ func _physics_process(delta: float) -> void:
 	
 	if not is_on_floor():
 		velocity.y += gravity * delta
-		player.animation = "Jump"
+		if velocity.y < 0:
+			player.animation = "Jump"
+		else:
+			player.animation = "Fall"
+	elif(velocity.x > 1 || velocity.x < -1):
+		player.animation = "Sprint"
+	else:
+		player.animation = "Idle"
 		
 	if Input.is_action_pressed("shoot"):
 		shoot()
@@ -109,7 +120,6 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	
 	if is_on_floor():
-		
 		jump_left = max_jumps
 		has_jumped = false
 		air_control_locked = false
@@ -128,10 +138,7 @@ func _physics_process(delta: float) -> void:
 		player.flip_h = false
 
 	#var is_falling_off = was_on_floor and not on_floor and velocity.y >= 0
-	if(velocity.x > 1 || velocity.x < -1):
-		player.animation = "Sprint"
-	else:
-		player.animation = "Idle"
+
 	
 	if global_position.y > 1500:
 		die()
@@ -143,7 +150,7 @@ func movement(direction,current_speed):
 		velocity.x = move_toward(velocity.x,0,8)
 
 func shoot():
-	print(global_position)
+	#print(global_position)
 	if current_bullets >= max_bullet or not can_shoot:
 		return
 	can_shoot = false
@@ -168,7 +175,7 @@ func shoot():
 	bullet.add_to_group("bullet")
 	current_bullets += 1
 	bullet.tree_exited.connect(func(): current_bullets -= 1)
-	print("Current bullets: ", current_bullets)
+	#aprint("Current bullets: ", current_bullets)
 
 func jump():
 	if jump_left <= 0:
@@ -191,3 +198,12 @@ func die():
 	fell_off_platform = false
 	air_control_locked = false
 	current_bullets = 0
+
+func take_damage(s: AnimatedSprite2D = player) -> void:
+	super.take_damage(s)
+
+func _on_area_2d_body_entered(body: Node2D) -> void:
+	print("Body entered: ", body.name)
+	print("Is enemy: ", body.is_in_group("enemy"))
+	if body.is_in_group("enemy"):
+		take_damage()

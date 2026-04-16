@@ -25,6 +25,7 @@ animations = [{
 [node name="Weapon1" type="CharacterBody2D" unique_id=809533841]
 texture_filter = 1
 script = ExtResource("1_och2e")
+speed = 350
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1415517982]
 position = Vector2(-1, 0)
