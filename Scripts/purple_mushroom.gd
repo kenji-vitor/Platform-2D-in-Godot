@@ -107,9 +107,3 @@ func take_damage() -> void:
 		return
 	is_damaged = true
 	_turn_red()
-
-
-func _on_area_2d_body_entered(body: Node2D) -> void:
-	if body.is_in_group("bullet"):
-		body.queue_free()
-		take_damage()

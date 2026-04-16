@@ -1,7 +1,10 @@
 extends CharacterBody2D
 
-var health = 3
+@export var health: int
 var is_damaged = false
+
+func on_death():
+	queue_free()
 
 func _turn_red(s: AnimatedSprite2D) -> void:
 	s.modulate = Color(1,0.3,0.3,1)
@@ -16,7 +19,7 @@ func take_damage(s: AnimatedSprite2D) -> void:
 	health -= 1
 	print("Health: ", health)
 	if health <= 0:
-		queue_free()
+		on_death()
 		return
 	is_damaged = true
 	_turn_red(s)

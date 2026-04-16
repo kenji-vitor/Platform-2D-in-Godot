@@ -15,6 +15,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 
 	velocity.x = speed * direction
+	if is_on_wall():
+		queue_free()
 	move_and_slide()
 	
 	#if target != null:

@@ -1403,6 +1403,7 @@ layer_2/name = "b"
 
 [node name="CharacterBody2D" parent="." unique_id=406442816 instance=ExtResource("3_kbj7r")]
 position = Vector2(1, 371)
+max_jumps = null
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=116300912]
 light_mask = 3

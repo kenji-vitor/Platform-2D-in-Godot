@@ -32,12 +32,14 @@ var classic = false #Oldschool movement
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 @onready var weapon1_scene = preload("res://Scenes/weapon_1.tscn")
 
+@onready var hitbox = $Area2D
 var spawn_position: Vector2
 
 
 var is_running = false
 
 func _ready() -> void:
+	var health = 10
 	spawn_position = global_position
 	jump_left = max_jumps
 
@@ -200,10 +202,12 @@ func die():
 	current_bullets = 0
 
 func take_damage(s: AnimatedSprite2D = player) -> void:
+	print("TAKE DAMAGE CHAMADO")
 	super.take_damage(s)
+	if health <= 0:
+		die()
 
-func _on_area_2d_body_entered(body: Node2D) -> void:
-	print("Body entered: ", body.name)
-	print("Is enemy: ", body.is_in_group("enemy"))
-	if body.is_in_group("enemy"):
+func _on_area_2d_area_entered(area: Area2D) -> void:
+	var enemy = area.get_parent()
+	if enemy.is_in_group("enemy"):
 		take_damage()
