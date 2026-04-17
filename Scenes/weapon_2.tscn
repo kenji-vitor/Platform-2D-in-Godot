@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://da4xkqv568b3l"]
+
+[ext_resource type="Script" uid="uid://50ggs1gh7h1k" path="res://Scripts/weapon_2.gd" id="1_2wdv7"]
+[ext_resource type="Texture2D" uid="uid://ctrx3l4dm8oet" path="res://Images/Trap and Weapon/00 All.png" id="2_thaxl"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_7nkh3"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_an0an"]
+atlas = ExtResource("2_thaxl")
+region = Rect2(672, 512, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_c7ck0"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_an0an")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Weapon2" type="CharacterBody2D" unique_id=1305614990]
+collision_layer = 4
+collision_mask = 768
+script = ExtResource("1_2wdv7")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1304370474]
+shape = SubResource("CapsuleShape2D_7nkh3")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1362591709]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_c7ck0")
+
+[node name="ShootDelayTimer" type="Timer" parent="." unique_id=1117800565]
+
+[connection signal="timeout" from="ShootDelayTimer" to="." method="_on_shoot_delay_timer_timeout"]

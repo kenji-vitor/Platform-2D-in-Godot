@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://c25m1dw4a658v"]
+
+[ext_resource type="PackedScene" uid="uid://5uvbk6v0q52k" path="res://Scenes/player.tscn" id="1_uruiy"]
+
+[node name="Player_HERDADO" unique_id=406442816 instance=ExtResource("1_uruiy")]
+visible = true
+collision_layer = 1
+
+[node name="KnockbackTimer" type="Timer" parent="." index="5" unique_id=2060949309]
+wait_time = 0.5
+one_shot = true
+
+[node name="InvincibilityTimer" type="Timer" parent="." index="6" unique_id=1395724339]
+one_shot = true
+
+[connection signal="timeout" from="KnockbackTimer" to="." method="_on_knockback_timer_timeout"]
+[connection signal="timeout" from="InvincibilityTimer" to="." method="_on_invincibility_timer_timeout"]

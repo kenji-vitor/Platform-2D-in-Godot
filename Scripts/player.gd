@@ -4,7 +4,8 @@ var SPEED = 100.0
 var JUMP_VEL = -300.0
 @onready var player: AnimatedSprite2D = $AnimatedSprite2D
 
-
+var knockback_force = Vector2(100,-250)
+var is_knockback = false
 
 @onready var shoot_point = $ShootPoint
 
@@ -23,6 +24,10 @@ var current_bullets = 0
 var fire_cooldown = 0.4
 var can_shoot = true
 
+#Timers
+@onready var knockback_timer = $KnockbackTimer
+@onready var invincibility_timer = $InvincibilityTimer
+var is_invincible = false
 
 #Difficulty
 var code_sequence = ["h","a","r","d"]
@@ -31,6 +36,7 @@ var classic = false #Oldschool movement
 
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 @onready var weapon1_scene = preload("res://Scenes/weapon_1.tscn")
+@onready var weapon2_scene = preload("res://Scenes/weapon_2.tscn")
 
 @onready var hitbox = $Area2D
 var spawn_position: Vector2
@@ -39,7 +45,6 @@ var spawn_position: Vector2
 var is_running = false
 
 func _ready() -> void:
-	var health = 10
 	spawn_position = global_position
 	jump_left = max_jumps
 
@@ -88,6 +93,12 @@ func _physics_process(delta: float) -> void:
 	#var parallax = get_parent().get_node("$ParallaxBackground")
 	#aparallax.scroll_offset.y = global_position.y
 	
+	if is_knockback:
+		if not is_on_floor():
+			velocity.y += gravity * delta
+		move_and_slide()
+		return
+	
 	if not is_on_floor():
 		velocity.y += gravity * delta
 		if velocity.y < 0:
@@ -100,7 +111,7 @@ func _physics_process(delta: float) -> void:
 		player.animation = "Idle"
 		
 	if Input.is_action_pressed("shoot"):
-		shoot()
+		shoot(weapon1_scene)
 	#Gravity
 
 	#Horizontal Movement
@@ -151,13 +162,17 @@ func movement(direction,current_speed):
 	else:
 		velocity.x = move_toward(velocity.x,0,8)
 
-func shoot():
+func shoot(weapon_scene):
 	#print(global_position)
 	if current_bullets >= max_bullet or not can_shoot:
 		return
 	can_shoot = false
 	get_tree().create_timer(fire_cooldown).timeout.connect(func(): can_shoot = true)
-	var bullet = weapon1_scene.instantiate()
+	match weapon_scene:
+		1: 
+			var bullet = weapon_scene.instantiate()
+		_:
+			print("Arma inv´")
 	get_parent().add_child(bullet)
 	
 	
@@ -178,6 +193,15 @@ func shoot():
 	current_bullets += 1
 	bullet.tree_exited.connect(func(): current_bullets -= 1)
 	#aprint("Current bullets: ", current_bullets)
+	
+func apply_knockback(from_position: Vector2):
+	var direction = sign(global_position.x - from_position.x)
+	
+	velocity.x = direction * knockback_force.x
+	velocity.y = knockback_force.y
+	is_knockback = true
+	knockback_timer.start()
+	
 
 func jump():
 	if jump_left <= 0:
@@ -200,14 +224,39 @@ func die():
 	fell_off_platform = false
 	air_control_locked = false
 	current_bullets = 0
+	get_tree().reload_current_scene()
 
 func take_damage(s: AnimatedSprite2D = player) -> void:
-	print("TAKE DAMAGE CHAMADO")
+	if is_invincible:
+		return
+	if s == null:
+		s = player
 	super.take_damage(s)
+
+	is_invincible = true
+	$Area2D.monitoring = false
+	_invincible_frames_blinks(s)
+	invincibility_timer.start(2)
 	if health <= 0:
+		#print("Die chamado")
 		die()
 
+
+
 func _on_area_2d_area_entered(area: Area2D) -> void:
+	if is_invincible:
+		return
 	var enemy = area.get_parent()
 	if enemy.is_in_group("enemy"):
 		take_damage()
+		apply_knockback(enemy.global_position)
+
+
+func _on_knockback_timer_timeout() -> void:
+	is_knockback = false
+	velocity.x = 0
+
+
+func _on_invincibility_timer_timeout() -> void:
+	is_invincible = false
+	$Area2D.monitoring = true

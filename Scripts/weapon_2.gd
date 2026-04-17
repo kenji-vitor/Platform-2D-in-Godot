@@ -1,4 +1,9 @@
 extends "res://Scripts/weapon_base.gd"
+#Throws 3 bullets one after one after one
+
+@onready var ShootDelayTimer = $ShootDelayTimer
+var is_shooting = false
+var bullet_amount = 3
 '''
 @export var speed = 600
 var direction = 2
@@ -30,5 +35,14 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 	'''
 	super._physics_process(delta)
+	#for i in range(bullet_amount):
+		
+		
+	
+	
 func _exit_tree() -> void:
 	super._exit_tree()
+
+
+func _on_shoot_delay_timer_timeout() -> void:
+	is_shooting = false
