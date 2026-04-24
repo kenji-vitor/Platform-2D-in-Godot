@@ -9,7 +9,7 @@ var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 @onready var hitbox = $Area2D
 @onready var delay_after_jump_timer = $DelayAfterJumpTimer
 
-var health = 3
+var health = 5
 var is_damaged = false
 
 #X direction 

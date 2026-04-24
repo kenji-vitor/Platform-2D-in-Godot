@@ -8,6 +8,8 @@ var knockback_force = Vector2(100,-250)
 var is_knockback = false
 
 @onready var shoot_point = $ShootPoint
+var current_weapon = 2
+
 
 @export var max_jumps: int = 2
 var jump_left : int = 2
@@ -19,7 +21,7 @@ var fell_off_platform = false
 var air_direction = 0
 var air_control_locked = false
 
-var max_bullet = 40
+var max_bullet = 0
 var current_bullets = 0
 var fire_cooldown = 0.4
 var can_shoot = true
@@ -41,8 +43,16 @@ var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 @onready var hitbox = $Area2D
 var spawn_position: Vector2
 
+const weapon1_limit = 20
+const weapon1_cooldwon = 0.4
+
+const  weapon2_limit = 6
+const weapon2_cooldown = 0.8
+
+var can_swap = true
 
 var is_running = false
+
 
 func _ready() -> void:
 	spawn_position = global_position
@@ -61,7 +71,9 @@ func _input(event: InputEvent) -> void:
 				print("Classic Controllers!!", classic)
 		else:
 			code_progress = 0
-		
+	
+	if Input.is_action_just_pressed("swap_weapon"):
+		swap_weapon()
 	
 	#print("Jump left: ", jump_left)
 	if Input.is_action_just_pressed("jump") and Input.is_action_pressed("down") and jump_left > 0:
@@ -111,7 +123,7 @@ func _physics_process(delta: float) -> void:
 		player.animation = "Idle"
 		
 	if Input.is_action_pressed("shoot"):
-		shoot(weapon1_scene)
+		shoot()
 	#Gravity
 
 	#Horizontal Movement
@@ -162,30 +174,57 @@ func movement(direction,current_speed):
 	else:
 		velocity.x = move_toward(velocity.x,0,8)
 
-func shoot(weapon_scene):
-	#print(global_position)
-	if current_bullets >= max_bullet or not can_shoot:
+func swap_weapon() -> void:
+	if not can_swap:
+		return
+	current_weapon = 2 if current_weapon == 1 else 1
+	print("Swaped to weapon: ", current_weapon)
+	can_swap = false
+	get_tree().create_timer(2.5).timeout.connect(func(): can_swap = true)
+
+	
+			
+
+func shoot() -> void:
+	print("shoot called, weapon: ", current_weapon, " can_shoot: ", can_shoot)
+	if not can_shoot:
+		return
+	match current_weapon:
+		1: 
+			shoot_weapon1()
+			
+		2: 
+			shoot_weapon2()
+
+func shoot_weapon1() -> void:
+	max_bullet = weapon1_scene.instantiate()
+	if current_bullets >= weapon1_limit:
 		return
 	can_shoot = false
-	get_tree().create_timer(fire_cooldown).timeout.connect(func(): can_shoot = true)
-	match weapon_scene:
-		1: 
-			var bullet = weapon_scene.instantiate()
-		_:
-			print("Arma inv´")
+	get_tree().create_timer(weapon1_cooldwon).timeout.connect(func(): can_shoot = true)
+	_shoot_bullet(weapon1_scene)
+
+func shoot_weapon2() -> void:
+	max_bullet = weapon2_scene.instantiate()
+	if current_bullets >= weapon2_limit:
+		return
+	can_shoot = false
+	get_tree().create_timer(weapon2_cooldown).timeout.connect(func(): can_shoot = true)
+	for i in range(3):
+		_shoot_bullet(weapon2_scene)
+		await get_tree().create_timer(0.15).timeout
+
+func _shoot_bullet(scene: PackedScene) -> void:
+	var bullet = scene.instantiate()
 	get_parent().add_child(bullet)
-	
-	
 	if player.flip_h:
 		bullet.global_position = shoot_point.global_position+ Vector2(-10,0)
 		bullet.direction = -1
-		
 	else:
 		bullet.global_position = shoot_point.global_position+ Vector2(10,0)
 		bullet.direction = 1
 	bullet.target = self
 	bullet.add_collision_exception_with(self)
-	
 	for existing_bullet in get_tree().get_nodes_in_group("bullet"):
 		bullet.add_collision_exception_with(existing_bullet)
 		existing_bullet.add_collision_exception_with(bullet)
@@ -232,7 +271,6 @@ func take_damage(s: AnimatedSprite2D = player) -> void:
 	if s == null:
 		s = player
 	super.take_damage(s)
-
 	is_invincible = true
 	$Area2D.monitoring = false
 	_invincible_frames_blinks(s)
@@ -244,9 +282,9 @@ func take_damage(s: AnimatedSprite2D = player) -> void:
 
 
 func _on_area_2d_area_entered(area: Area2D) -> void:
+	var enemy = area.get_parent()
 	if is_invincible:
 		return
-	var enemy = area.get_parent()
 	if enemy.is_in_group("enemy"):
 		take_damage()
 		apply_knockback(enemy.global_position)
