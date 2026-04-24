@@ -5,3 +5,5 @@
 [node name="WeaponBase" type="Node2D" unique_id=1939697270]
 script = ExtResource("1_lkhks")
 speed = 750
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1508468803]

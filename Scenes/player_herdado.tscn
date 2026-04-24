@@ -7,8 +7,7 @@ visible = true
 collision_layer = 1
 
 [node name="KnockbackTimer" type="Timer" parent="." index="5" unique_id=2060949309]
-wait_time = 0.5
-one_shot = true
+wait_time = 6.0
 
 [node name="InvincibilityTimer" type="Timer" parent="." index="6" unique_id=1395724339]
 one_shot = true

@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dj1mg7t82h8i5" path="res://Images/Free Mushrooms/Mushroom_Reg.png" id="2_fkkin"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_qqvbs"]
-radius = 10.049875
+radius = 7.0
 
 [sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_xb8hc"]
 parameter_name = "ColorParameter"
@@ -164,7 +164,7 @@ shape = SubResource("CircleShape2D_qqvbs")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1311450351]
 texture_filter = 1
 material = SubResource("ShaderMaterial_8sq3t")
-position = Vector2(-1, -2)
+position = Vector2(-0.9999981, -4)
 scale = Vector2(0.9375, 0.9375)
 sprite_frames = SubResource("SpriteFrames_ot03a")
 animation = &"Jump"
@@ -172,11 +172,12 @@ frame = 8
 frame_progress = 1.0
 
 [node name="Area2D" type="Area2D" parent="." unique_id=68470310]
-position = Vector2(0, 4)
+position = Vector2(2, -8)
 collision_layer = 2
 collision_mask = 772
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1607340879]
+position = Vector2(-2, 12)
 shape = SubResource("RectangleShape2D_f5edn")
 debug_color = Color(0.522849, 0.49879992, 0.755948, 0.41960785)
 

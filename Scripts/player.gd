@@ -29,12 +29,15 @@ var can_shoot = true
 #Timers
 @onready var knockback_timer = $KnockbackTimer
 @onready var invincibility_timer = $InvincibilityTimer
+
+var classic_knockback_timer = 5.0
+var normal_knock_back_timer = 0.4
 var is_invincible = false
 
 #Difficulty
 var code_sequence = ["h","a","r","d"]
 var code_progress = 0
-var classic = false #Oldschool movement
+var classic = true #Oldschool movement
 
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 @onready var weapon1_scene = preload("res://Scenes/weapon_1.tscn")
@@ -53,6 +56,11 @@ var can_swap = true
 
 var is_running = false
 
+var was_on_floor_hit = false
+
+var hit_position_y = 0.0
+
+var knockback_timer_shortened = false
 
 func _ready() -> void:
 	spawn_position = global_position
@@ -79,7 +87,7 @@ func _input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("jump") and Input.is_action_pressed("down") and jump_left > 0:
 		drop_through_platform()
 		return
-	if Input.is_action_just_pressed("jump") and jump_left > 0:
+	if Input.is_action_just_pressed("jump") and jump_left > 0 and not is_knockback:
 		jump()
 
 		if jump_left == max_jumps - 1:
@@ -104,10 +112,27 @@ func _input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	#var parallax = get_parent().get_node("$ParallaxBackground")
 	#aparallax.scroll_offset.y = global_position.y
-	
+	_check_enemy_overlay()
 	if is_knockback:
 		if not is_on_floor():
 			velocity.y += gravity * delta
+			if classic and not knockback_timer_shortened:
+				var fall_distance = global_position.y - hit_position_y
+				#print(fall_distance)
+				if fall_distance < 20 and velocity.y > 0:
+					knockback_timer.start(0.8)
+					knockback_timer_shortened = true
+				elif fall_distance >= 20 and velocity.y > 0:
+					#if knockback_timer.time_left > 0.8:
+						#knockback_timer.start(0.8)
+					knockback_timer_shortened = true
+						
+		else:
+			velocity.x = move_toward(velocity.x,0,20)
+			if classic and was_on_floor_hit:
+				if knockback_timer.time_left > 1.0:
+					knockback_timer.start(1.0)
+
 		move_and_slide()
 		return
 	
@@ -123,7 +148,11 @@ func _physics_process(delta: float) -> void:
 		player.animation = "Idle"
 		
 	if Input.is_action_pressed("shoot"):
-		shoot()
+		if classic:
+			if not is_knockback:
+				shoot()
+		else:
+			shoot()
 	#Gravity
 
 	#Horizontal Movement
@@ -186,7 +215,7 @@ func swap_weapon() -> void:
 			
 
 func shoot() -> void:
-	print("shoot called, weapon: ", current_weapon, " can_shoot: ", can_shoot)
+	#print("shoot called, weapon: ", current_weapon, " can_shoot: ", can_shoot)
 	if not can_shoot:
 		return
 	match current_weapon:
@@ -239,7 +268,14 @@ func apply_knockback(from_position: Vector2):
 	velocity.x = direction * knockback_force.x
 	velocity.y = knockback_force.y
 	is_knockback = true
-	knockback_timer.start()
+	was_on_floor_hit = is_on_floor()
+	hit_position_y = global_position.y
+	if classic:
+		print("Classic knockback called")
+		knockback_timer.start(classic_knockback_timer)
+	else:
+		knockback_timer.start(normal_knock_back_timer)
+	knockback_timer_shortened = false
 	
 
 func jump():
@@ -279,21 +315,19 @@ func take_damage(s: AnimatedSprite2D = player) -> void:
 		#print("Die chamado")
 		die()
 
-
-
-func _on_area_2d_area_entered(area: Area2D) -> void:
-	var enemy = area.get_parent()
-	if is_invincible:
-		return
-	if enemy.is_in_group("enemy"):
-		take_damage()
-		apply_knockback(enemy.global_position)
-
-
+func _on_area_2d_area_exited(area: Area2D) -> void:
+	pass # Replace with function body.
+	
+func _check_enemy_overlay() -> void:
+	for area in $Area2D.get_overlapping_areas():
+		var enemy = area.get_parent()
+		if enemy.is_in_group("enemy") and not is_invincible:
+			take_damage()
+			apply_knockback(enemy.global_position)
+			
 func _on_knockback_timer_timeout() -> void:
 	is_knockback = false
 	velocity.x = 0
-
 
 func _on_invincibility_timer_timeout() -> void:
 	is_invincible = false

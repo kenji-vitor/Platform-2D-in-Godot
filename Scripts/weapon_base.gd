@@ -7,9 +7,10 @@ var target : Node2D
 @export var x_limit = 750.0
 @export var x_min_limit = -3000.0
 @export var x_max_limit = 3000.0
-
 @export var damage = 0
 var start_x : float
+
+@onready var sprite = $AnimatedSprite2D
 
 func _ready() -> void:
 	start_x = global_position.x
@@ -27,7 +28,7 @@ func _physics_process(delta: float) -> void:
 		#var diff = target.global_position.y - global_position.y
 		#velocity.y = diff * 1.0
 	
-	rotation += rotation_speed * direction * delta
+	sprite.rotation += rotation_speed * direction * delta
 	if global_position.x > x_max_limit or global_position.x < -x_max_limit:#or global_position.x < x_min_limit:
 		queue_free()
 
