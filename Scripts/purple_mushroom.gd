@@ -19,16 +19,18 @@ var jump_timer = 0.0
 var time_to_jump = 0.0
 var is_jumping = false
 
-
-
 var jump_time = 0.0
 var tracking_jump = false
 
+@onready var floor_check_right = $RayCast2DRight
+@onready var floor_check_left = $RayCast2DLeft
+var edge_detected = false
+
+var can_change_direction = true
+
 func _ready() -> void:
+	#floor_check.position.x = 20 * direction
 	jump_frames_animation()
-	
-	
-	
 	hitbox.body_entered.connect(_on_body_entered)
 	direction = [-1,1].pick_random()
 	_set_random_jump()
@@ -56,50 +58,53 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += gravity * delta
 		is_jumping = true
+		edge_detected = false
 	else:
 		#velocity.x += SPEED * direction * delta
 		is_jumping = false
+		if direction == 1 and not floor_check_right.is_colliding():
+			direction = -1
+		elif direction == -1 and not floor_check_left.is_colliding():
+			direction = 1
+
 
 	
+	if is_on_wall():
+		_flip_direction(direction * -1)
+
+			
+
 	if is_jumping:
 		purple_mushroom.play("Jump")
 	else:
 		purple_mushroom.play("Move")
 		
 		
-	if is_jumping and is_on_floor() == false:
-		jump_time += delta
-	elif not is_jumping and jump_time > 0:
-		
-		jump_time = 0.0
-		
-
-	move_and_slide()
-	
-	if is_on_wall():
-		direction *= -1
-		_set_random_timer()
-		
 	change_direction_timer += delta
 	if change_direction_timer >= time_to_change:
-		direction *= -1
+		_flip_direction(direction * -1)
 		_set_random_timer()
-	
+		
 	jump_timer += delta
 	if jump_timer >= time_to_jump and is_on_floor():
 		velocity.y = JUMP_FORCE
 		velocity.x = SPEED * direction
 		is_jumping = true
 		purple_mushroom.play("Jump")
-		#print("JUMPING: ", is_jumping)  # add this
-		direction = [-1,1].pick_random()
+		_flip_direction([-1,1].pick_random())
 		_set_random_jump()
 		
 	if velocity.x < 0:
 		purple_mushroom.flip_h = true
 	elif velocity.x > 0:
 		purple_mushroom.flip_h = false
-		
+
+	velocity.x = SPEED * direction
+	move_and_slide()
+	
+	if global_position.y > 1500:
+		queue_free()
+
 
 	
 func _turn_red() -> void:
@@ -123,6 +128,19 @@ func take_damage() -> void:
 		return
 	is_damaged = true
 	_turn_red()
+
+func _flip_direction(new_dir: int) -> void:
+	if not can_change_direction:
+		return
+	if new_dir == 1:
+		if not floor_check_right.is_colliding():
+			new_dir = -1
+	elif new_dir == -1:
+		if not floor_check_left.is_colliding():
+			new_dir = 1
+	direction = new_dir
+	can_change_direction = false
+	get_tree().create_timer(2).timeout.connect(func(): can_change_direction = true)
 
 
 func _on_delay_after_jump_timer_timeout() -> void:

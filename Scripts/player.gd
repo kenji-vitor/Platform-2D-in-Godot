@@ -129,13 +129,11 @@ func _physics_process(delta: float) -> void:
 					#if knockback_timer.time_left > 0.8:
 						#knockback_timer.start(0.8)
 					knockback_timer_shortened = true
-						
 		else:
 			velocity.x = move_toward(velocity.x,0,20)
 			if classic and was_on_floor_hit:
 				if knockback_timer.time_left > 1.0:
 					knockback_timer.start(1.0)
-
 		move_and_slide()
 		return
 	
