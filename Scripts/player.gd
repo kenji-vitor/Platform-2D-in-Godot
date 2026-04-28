@@ -37,7 +37,10 @@ var is_invincible = false
 #Difficulty
 var code_sequence = ["h","a","r","d"]
 var code_progress = 0
-var classic = true #Oldschool movement
+var classic = false #Oldschool movement
+var classic_deceleration = 100
+var normal_deceleration = 8
+
 
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 @onready var weapon1_scene = preload("res://Scenes/weapon_1.tscn")
@@ -49,7 +52,7 @@ var spawn_position: Vector2
 const weapon1_limit = 20
 const weapon1_cooldwon = 0.4
 
-const  weapon2_limit = 6
+const  weapon2_limit = 15
 const weapon2_cooldown = 0.8
 
 var can_swap = true
@@ -160,16 +163,20 @@ func _physics_process(delta: float) -> void:
 	var direction = Input.get_axis("move_left","move_right")
 	var current_speed = SPEED + 40 if is_running else SPEED
 	if classic:
+		if not is_on_floor() and not air_control_locked:
+			air_control_locked = true
+			if has_jumped:
+				#air_control_locked = true
+				air_direction = Input.get_axis("move_left", "move_right")
+				#air_direction = sign(velocity.x) if abs(velocity.x) > 1 else 0
+			else:
+				air_direction = 0
 		if air_control_locked:
 			velocity.x = air_direction * current_speed
 		else:
-			movement(direction,current_speed)
-			#if direction:
-			#	velocity.x = direction * current_speed
-			#else:
-				#velocity.x = move_toward(velocity.x,0,8)
+			movement(direction,current_speed,classic_deceleration)
 	else:
-		movement(direction,current_speed)
+		movement(direction,current_speed,normal_deceleration)
 		
 	move_and_slide()
 	
@@ -197,11 +204,11 @@ func _physics_process(delta: float) -> void:
 	if global_position.y > 1500:
 		die()
 
-func movement(direction,current_speed):
+func movement(direction,current_speed,deceleration = 8):
 	if direction:
 		velocity.x = direction * current_speed
 	else:
-		velocity.x = move_toward(velocity.x,0,8)
+		velocity.x = move_toward(velocity.x,0,deceleration)
 
 func swap_weapon() -> void:
 	if not can_swap:
