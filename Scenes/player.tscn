@@ -215,8 +215,7 @@ animations = [{
 "speed": 20.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_fkybt"]
-size = Vector2(12, 20)
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_fkybt"]
 
 [node name="Player" type="CharacterBody2D" unique_id=406442816 groups=["player"]]
 visible = false
@@ -249,7 +248,7 @@ collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=93089322]
 position = Vector2(0, 1)
-shape = SubResource("RectangleShape2D_fkybt")
+shape = SubResource("SegmentShape2D_fkybt")
 debug_color = Color(0.9321811, 0.07483768, 0.6161672, 0.41960785)
 
 [connection signal="area_exited" from="Area2D" to="." method="_on_area_2d_area_exited"]

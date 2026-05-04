@@ -164,10 +164,6 @@ func _physics_process(delta: float) -> void:
 		if not is_on_floor() and not air_control_locked:
 			air_control_locked = true
 			if has_jumped:
-				#air_control_locked = true
-				air_direction = Input.get_axis("move_left", "move_right")
-				#air_direction = sign(velocity.x) if abs(velocity.x) > 1 else 0
-			else:
 				air_direction = 0
 		if air_control_locked:
 			velocity.x = air_direction * current_speed

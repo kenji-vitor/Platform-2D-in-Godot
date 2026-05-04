@@ -17,9 +17,8 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	
-	velocity.x = speed * direction
-	move_and_slide()
-	if is_on_wall():
+	var collision = move_and_collide(Vector2(speed*direction,0) * delta)
+	if collision:
 		queue_free()
 		
 	

@@ -2,9 +2,16 @@
 
 [ext_resource type="PackedScene" uid="uid://5uvbk6v0q52k" path="res://Scenes/player.tscn" id="1_uruiy"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_uruiy"]
+size = Vector2(9, 13)
+
 [node name="Player_HERDADO" unique_id=406442816 instance=ExtResource("1_uruiy")]
 visible = true
 collision_layer = 1
+
+[node name="CollisionShape2D" parent="Area2D" parent_id_path=PackedInt32Array(1575999253) index="0" unique_id=93089322]
+position = Vector2(-0.5, 0.5)
+shape = SubResource("RectangleShape2D_uruiy")
 
 [node name="KnockbackTimer" type="Timer" parent="." index="5" unique_id=2060949309]
 wait_time = 6.0

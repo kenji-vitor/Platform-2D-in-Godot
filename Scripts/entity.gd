@@ -1,6 +1,6 @@
 extends CharacterBody2D
 class_name Entity
-
+#Parent for Player, Purple Mushroom
 
 @export var health: int
 var is_damaged = false
@@ -11,7 +11,14 @@ func _turn_red(s: AnimatedSprite2D) -> void:
 	s.modulate = Color(1,1,1,1)
 	await get_tree().create_timer(0.1).timeout
 	is_damaged = false
-
+'''
+func _turn_red() -> void:
+	purple_mushroom.modulate = Color(1,0.3,0.3,1)
+	await get_tree().create_timer(0.1).timeout
+	purple_mushroom.modulate = Color(1,1,1,1)
+	await get_tree().create_timer(0.1).timeout
+	is_damaged = false
+'''
 	
 	
 func _invincible_frames_blinks(s: AnimatedSprite2D) -> void:
