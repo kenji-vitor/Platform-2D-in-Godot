@@ -1493,11 +1493,13 @@ position = Vector2(-601, 1012)
 [node name="SpawnTrigger" type="Node2D" parent="." unique_id=521869425]
 script = ExtResource("15_f8g6u")
 enemy_scene = ExtResource("14_65h6j")
-spawn_positions = Array[Vector2]([Vector2(-2700, 400), Vector2(-1500, 200)])
+spawn_positions = Array[Vector2]([Vector2(-2500, 400), Vector2(-1400, 200)])
 spawn_directions = Array[int]([1, -1])
-spawn_interval = 1.0
+spawn_max_enemies = Array[int]([1, 1])
+spawn_intervals = Array[float]([1.0, 1.0])
+spawn_interval = 0.4
 max_enemies = 20
-spawn_limit = 20
+spawn_limit = 2
 
 [node name="Area2D" type="Area2D" parent="SpawnTrigger" unique_id=1195792507]
 position = Vector2(-2049, 533)

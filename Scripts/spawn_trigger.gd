@@ -5,11 +5,19 @@ enum SpawnMode {LOOP, LIMITED}
 @export var enemy_scene: PackedScene 
 @export var spawn_positions: Array[Vector2] = []
 @export var spawn_directions: Array[int] = [] # 1 OR -1
-@export var spawn_interval: float = 2.0
-@export var max_enemies: int = 4
+@export var spawn_max_enemies: Array[int] = []
+@export var spawn_intervals: Array[float] = []
+var spawn_timers: Array[float] = []
+var spawn_current_enemies: Array[int] = []
+
+@export var spawn_interval: float = 3.0
+@export var max_enemies: int = 0
+
+#This var dont do nothing for now
 @export var spawn_mode = SpawnMode.LOOP
 @export var spawn_limit: int = 4 #Only used in LIMITED
 #@export var spawn_direction = 1 
+
 
 var triggered = false
 var current_enemies = 0
@@ -21,20 +29,44 @@ var is_spawning = false
 func _ready() -> void:
 	area.body_entered.connect(_on_body_entered)
 	area.body_exited.connect(_on_body_exited)
+	for i in spawn_positions.size():
+		spawn_timers.append(0.0)
+		spawn_current_enemies.append(0)
+
+func _physics_process(delta: float) -> void:
+	if not triggered:
+		return
+	for i in spawn_positions.size():
+		spawn_timers[i] += delta
+		var interval = spawn_intervals[i] if i < spawn_intervals.size() else spawn_interval
+		var max_e = spawn_max_enemies[i] if i < spawn_max_enemies.size() else max_enemies
+		if spawn_timers[i] >= interval and spawn_current_enemies[i] < max_e:
+			spawn_timers[i] = 0.0
+			_spawn_enemy_at(i)
+			
+func _spawn_enemy_at(index: int) -> void:
+	var enemy = enemy_scene.instantiate()
+	get_parent().add_child(enemy)
+	enemy.global_position = spawn_positions[index]
+	if index < spawn_positions.size():
+		enemy.direction = spawn_directions[index]
+	spawn_current_enemies[index] += 1
+	enemy.tree_exited.connect(func(): spawn_current_enemies[index] -= 1)
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		print("Detectou o Player!!")
 		triggered = true
-		if not is_spawning:
-			_start_spawning()
-		if spawn_mode == SpawnMode.LIMITED or spawn_mode == SpawnMode.LOOP:
-			total_spawned = 0
+		#if not is_spawning:
+			#_start_spawning()
+		#if spawn_mode == SpawnMode.LIMITED or spawn_mode == SpawnMode.LOOP:
+			#total_spawned = 0
 
 func _on_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		triggered = false
 
+'''
 func _start_spawning() -> void:
 	is_spawning = true
 	while triggered:
@@ -49,7 +81,8 @@ func _start_spawning() -> void:
 					_spawn_enemy()
 		await get_tree().create_timer(spawn_interval).timeout
 	is_spawning = false
-
+'''
+'''
 func _spawn_enemy() -> void:
 	if spawn_positions.is_empty():
 		return
@@ -59,7 +92,11 @@ func _spawn_enemy() -> void:
 	enemy.global_position = spawn_positions[index]
 	if index < spawn_directions.size():
 		enemy.direction = spawn_directions[index]
+		
+	#if index < max_enemies_spawn.size():
+ 		#enemy.max_enemies = max_enemies_spawn[index]
 	current_enemies += 1
 	total_spawned += 1
 	enemy.tree_exited.connect(func(): current_enemies -= 1)
 	print("Enemy spawned at: ", enemy.global_position)
+'''

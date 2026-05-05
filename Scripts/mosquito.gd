@@ -1,7 +1,7 @@
 extends "res://Scripts/entity.gd"
 
 
-@export var despawn_distance = 1200.0
+@export var despawn_distance = 800.0
 @onready var mosquito: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox = $Area2D
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")

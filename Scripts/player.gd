@@ -164,9 +164,17 @@ func _physics_process(delta: float) -> void:
 		if not is_on_floor() and not air_control_locked:
 			air_control_locked = true
 			if has_jumped:
+				air_direction = Input.get_axis("move_left","move_right")
+			else:
 				air_direction = 0
 		if air_control_locked:
 			velocity.x = air_direction * current_speed
+			
+			var look_direction = Input.get_axis("move_left","move_right")
+			if look_direction < 0:
+				player.flip_h = true
+			elif look_direction > 0:
+				player.flip_h = false
 		else:
 			movement(direction,current_speed,classic_deceleration)
 	else:
@@ -178,6 +186,12 @@ func _physics_process(delta: float) -> void:
 		jump_left = max_jumps
 		has_jumped = false
 		air_control_locked = false
+		if classic:
+			if velocity.x > 0:
+				player.flip_h = false
+			elif velocity.x < 0:
+				player.flip_h = true
+
 		
 	elif was_on_floor and not has_jumped:
 		jump_left = 1
@@ -187,10 +201,11 @@ func _physics_process(delta: float) -> void:
 
 	
 	#if Input.is_action_just_pressed('ui_left'):
-	if velocity.x < 0:
-		player.flip_h = true
-	elif velocity.x > 0:
-		player.flip_h = false
+	if not classic:
+		if velocity.x < 0:
+			player.flip_h = true
+		elif velocity.x > 0:
+			player.flip_h = false
 
 	#var is_falling_off = was_on_floor and not on_floor and velocity.y >= 0
 
