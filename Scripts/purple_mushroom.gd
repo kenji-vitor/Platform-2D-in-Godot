@@ -71,11 +71,11 @@ func _physics_process(delta: float) -> void:
 		if direction == 1 and not floor_check_right.is_colliding():
 			direction = -1
 			velocity.x = SPEED * direction
-			print("Velocity on ground: ", velocity.x)
+			#print("Velocity on ground: ", velocity.x)
 		elif direction == -1 and not floor_check_left.is_colliding():
 			direction = 1
 			velocity.x = SPEED * direction
-			print("Velocity on ground: ", velocity.x)
+			#print("Velocity on ground: ", velocity.x)
 
 
 	
