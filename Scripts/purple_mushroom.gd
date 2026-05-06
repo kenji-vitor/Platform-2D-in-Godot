@@ -101,13 +101,14 @@ func _physics_process(delta: float) -> void:
 		#velocity.y = JUMP_FORCE
 		#velocity.x = (SPEED + extra_x_speed) * direction
 		#print(velocity.x)
-		var safe_dir = _get_safe_jump_direction()
-		if safe_dir == 0:
-			_set_random_jump()
-			return
-		direction = safe_dir
+		#var safe_dir = _get_safe_jump_direction()
+		#if safe_dir == 0:
+		#	_set_random_jump()
+			#return
+		#direction = safe_dir
 		velocity.y = JUMP_FORCE
-		velocity.x = (SPEED + extra_x_speed) * direction
+		#velocity.x = (SPEED + extra_x_speed) * direction
+		velocity.x = SPEED * direction
 		is_jumping_boost = true
 		is_jumping = true
 		purple_mushroom.play("Jump")

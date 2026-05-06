@@ -9,7 +9,7 @@ var SPEED = 160
 
 var start_y : float
 
-@export var amplitude = randi_range(60,120)
+@export var amplitude = randi_range(60,180)
 
 @export var frequency = randf_range(1,5)
 var direction = 1

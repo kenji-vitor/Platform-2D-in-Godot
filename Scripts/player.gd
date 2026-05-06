@@ -115,6 +115,7 @@ func _input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	#var parallax = get_parent().get_node("$ParallaxBackground")
 	#aparallax.scroll_offset.y = global_position.y
+	#print(player.global_position)
 	_check_enemy_overlay()
 	if is_knockback:
 		if not is_on_floor():

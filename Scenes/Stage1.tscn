@@ -1392,7 +1392,7 @@ sources/6 = SubResource("TileSetAtlasSource_65h6j")
 sources/7 = SubResource("TileSetAtlasSource_tafd4")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_f8g6u"]
-size = Vector2(663.5, 542)
+size = Vector2(2072, 1192)
 
 [node name="Node" type="Node" unique_id=104502373]
 
@@ -1467,7 +1467,7 @@ position = Vector2(-1628, 768)
 
 [node name="Player_HERDADO2" parent="." unique_id=242470186 instance=ExtResource("13_65h6j")]
 position = Vector2(-1932, 569)
-max_jumps = 20
+max_jumps = 1000
 
 [node name="PurpleMushroom" parent="." unique_id=1958609275 instance=ExtResource("13_vmg04")]
 position = Vector2(-1722, 769)
@@ -1493,17 +1493,19 @@ position = Vector2(-601, 1012)
 [node name="SpawnTrigger" type="Node2D" parent="." unique_id=521869425]
 script = ExtResource("15_f8g6u")
 enemy_scene = ExtResource("14_65h6j")
-spawn_positions = Array[Vector2]([Vector2(-2500, 400)])
-spawn_directions = Array[int]([1])
-spawn_max_enemies = Array[int]([3])
-spawn_intervals = Array[float]([1.4])
+spawn_positions = Array[Vector2]([Vector2(-1500, 400), Vector2(-2400, 200)])
+spawn_directions = Array[int]([-1, 1])
+spawn_max_enemies = Array[int]([3, 6])
+spawn_intervals = Array[float]([1.4, 1.0])
+spawn_SPEED = Array[int]([200, 250])
+deactivation_distance = 600.0
 spawn_interval = 0.0
 
 [node name="Area2D" type="Area2D" parent="SpawnTrigger" unique_id=1195792507]
 position = Vector2(-2049, 533)
 
 [node name="SpawnTriggerCollisionShape2D" type="CollisionShape2D" parent="SpawnTrigger/Area2D" unique_id=2052559848]
-position = Vector2(165.75, 5)
+position = Vector2(-404, 23)
 shape = SubResource("RectangleShape2D_f8g6u")
 
 [connection signal="body_entered" from="SpawnTrigger/Area2D" to="SpawnTrigger" method="_on_area_2d_body_entered"]

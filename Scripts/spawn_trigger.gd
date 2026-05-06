@@ -7,6 +7,11 @@ enum SpawnMode {LOOP, LIMITED}
 @export var spawn_directions: Array[int] = [] # 1 OR -1
 @export var spawn_max_enemies: Array[int] = []
 @export var spawn_intervals: Array[float] = []
+@export var spawn_SPEED: Array[int] = []
+
+
+@export var deactivation_distance: float = 800.0
+
 var spawn_timers: Array[float] = []
 var spawn_current_enemies: Array[int] = []
 var total_spawned_per_point: Array[int] = []
@@ -20,11 +25,13 @@ var total_spawned_per_point: Array[int] = []
 @export var spawn_limit: int = 0 #Only used in LIMITED
 #@export var spawn_direction = 1 
 
+@export var stop_and_exit: bool = true
 
 var triggered = false
 var current_enemies = 0
 var total_spawned = 0
 
+var cached_player: Node2D = null
 
 var is_spawning = false
 @onready var area = $Area2D
@@ -38,8 +45,28 @@ func _ready() -> void:
 		total_spawned_per_point.append(0)
 
 func _physics_process(delta: float) -> void:
+	if triggered and cached_player:
+		var player = get_tree().get_first_node_in_group("player")
+		'''
+		var player = get_tree().get_first_node_in_group("player")
+		if player and global_position.distance_to(player.global_position) > despawn_distance:
+			queue_free()
+			return
+		'''
+		if player:
+			var min_distance = 9999999.0
+			
+			for spawn_pos in spawn_positions:
+				var d = spawn_pos.distance_to(player.global_position)
+				if d < min_distance:
+					min_distance = d
+
+			if min_distance > deactivation_distance:
+				triggered = false
+				return
 	if not triggered:
 		return
+		
 	for i in spawn_positions.size():
 		spawn_timers[i] += delta
 		var interval = spawn_intervals[i] if i < spawn_intervals.size() else spawn_interval
@@ -49,21 +76,19 @@ func _physics_process(delta: float) -> void:
 		if spawn_timers[i] >= interval and spawn_current_enemies[i] < max_e:
 			spawn_timers[i] = 0.0
 			_spawn_enemy_at(i)
-					#print(current_enemies)
-					#return
-		'''
-		if spawn_current_enemies[i] < max_e:
-		    spawn_timers[i] += delta
-		    if spawn_timers[i] >= interval:
-		        spawn_timers[i] = 0.0
-		        _spawn_enemy_at(i)
-		'''
+func _draw() -> void:
+	# Apenas desenha no editor para te ajudar a configurar
+	if Engine.is_editor_hint() or OS.is_debug_build():
+		var color = Color(1,0,0,0.2)
+		draw_arc(Vector2.ZERO, deactivation_distance, 0, TAU, 64, color, 2.0) # Círculo vermelho transparente
+		
 func _spawn_enemy_at(index: int) -> void:
 	var enemy = enemy_scene.instantiate()
 	get_parent().add_child(enemy)
 	enemy.global_position = spawn_positions[index]
 	if index < spawn_positions.size():
 		enemy.direction = spawn_directions[index]
+		enemy.SPEED = spawn_SPEED[index]
 	spawn_current_enemies[index] += 1
 	match spawn_mode:
 		SpawnMode.LOOP:
@@ -73,18 +98,18 @@ func _spawn_enemy_at(index: int) -> void:
 			#Just pass, 'if' will lock it in spawn_current_enemes[i] < max_e (FALSE):
 			pass
 
-
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		#print("Detectou o Player!!")
 		triggered = true
+		cached_player = body
 		#if not is_spawning:
 			#_start_spawning()
 		#if spawn_mode == SpawnMode.LIMITED or spawn_mode == SpawnMode.LOOP:
 		#total_spawned = 0
 
 func _on_body_exited(body: Node2D) -> void:
-	if body.is_in_group("player"):
+	if body.is_in_group("player") and stop_and_exit:
 		triggered = false
 
 '''
