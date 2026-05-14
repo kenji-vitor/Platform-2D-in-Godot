@@ -159,6 +159,7 @@ script = ExtResource("1_f5edn")
 health = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1296220786]
+visible = false
 position = Vector2(0, 4)
 shape = SubResource("CircleShape2D_qqvbs")
 
@@ -171,6 +172,7 @@ sprite_frames = SubResource("SpriteFrames_ot03a")
 animation = &"Move"
 
 [node name="Area2D" type="Area2D" parent="." unique_id=68470310]
+visible = false
 position = Vector2(2, -8)
 collision_layer = 2
 collision_mask = 772
@@ -180,17 +182,19 @@ position = Vector2(-2, 12)
 shape = SubResource("RectangleShape2D_f5edn")
 debug_color = Color(0.522849, 0.49879992, 0.755948, 0.41960785)
 
-[node name="DelayAfterJumpTimer" type="Timer" parent="." unique_id=47506956]
-one_shot = true
-
 [node name="RayCast2DDownRight" type="RayCast2D" parent="." unique_id=1323540906]
-position = Vector2(12, 8)
+position = Vector2(10, 5)
 target_position = Vector2(0, 20)
 collision_mask = 256
 
 [node name="RayCast2DDownLeft" type="RayCast2D" parent="." unique_id=1833243240]
-position = Vector2(-12, 8)
+position = Vector2(-10, 5)
 target_position = Vector2(0, 20)
+collision_mask = 256
+
+[node name="WallCheck" type="RayCast2D" parent="." unique_id=940027959]
+position = Vector2(0, 5)
+target_position = Vector2(20, 0)
 collision_mask = 256
 
 [connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]
