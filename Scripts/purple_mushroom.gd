@@ -54,7 +54,7 @@ func jump_frames_animation():
 
 func _set_random_timer() -> void:
 	
-	time_to_change = randf_range(4.0,8.0)
+	time_to_change = randf_range(8.0,12.0)
 	change_direction_timer = 0.0
 
 func _set_random_jump() -> void:
@@ -79,7 +79,7 @@ func _physics_process(delta: float) -> void:
 		else:
 			var hole_right = not floor_check_right.is_colliding()
 			var hole_left = not floor_check_left.is_colliding()
-			
+			'''
 			if hole_left or hole_right:
 				if hole_left and hole_right:
 					print("Preso em 1 tile")
@@ -89,12 +89,24 @@ func _physics_process(delta: float) -> void:
 					unstuck_from_buping_edges(hole_left,hole_right)
 			else:
 				velocity.x = SPEED * direction
+			'''
+			if hole_right and hole_left:
+				_force_escape_jump()
+			elif hole_right and direction == 1:
+				velocity.x = 0
+				_flip_direction(direction * -1)
+			elif hole_left and direction == -1:
+				velocity.x = 0
+				_flip_direction(direction * -1)
+			else:
+				velocity.x = SPEED * direction
+			
 	if not is_escaping:
 		
 		change_direction_timer += delta
 		if change_direction_timer >= time_to_change:
 			_flip_direction(direction * -1)
-			_set_random_timer()
+			#_set_random_timer()
 		jump_timer += delta
 		if jump_timer >= time_to_jump and is_on_floor():
 			_handle_random_jump_ia()
@@ -110,7 +122,6 @@ func _physics_process(delta: float) -> void:
 
 	if is_on_wall() and is_on_floor():
 		if wall_check.enabled and wall_check.is_colliding():
-			print("Called unstuck_from_buping_walls")
 			unstuck_from_buping_walls()
 		
 	if velocity.x < 0:
@@ -135,7 +146,7 @@ func _handle_random_jump_ia() -> void:
 	var result = space_state.intersect_ray(query)
 	if result:
 		velocity.y = JUMP_FORCE
-		print(JUMP_FORCE)
+
 		velocity.x = SPEED * direction
 		is_jumping = true
 		_set_random_jump()
@@ -143,7 +154,6 @@ func _handle_random_jump_ia() -> void:
 		_flip_direction(direction * -1)
 		_set_random_jump()
 func _force_escape_jump() -> void:
-	print("Chamou escape jump")
 	is_escaping = true
 	direction = [-1,1].pick_random()
 	update_sensors()
@@ -158,7 +168,6 @@ func _force_escape_jump() -> void:
 func unstuck_from_buping_edges(hole_left,hole_right) -> void:
 	if global_position.distance_to(last_bump_position) < 30:
 		bump_counter += 1
-		#print("Bateu na borda: ",bump_counter)
 	else:
 		bump_counter = 1
 		last_bump_position = global_position
@@ -211,14 +220,11 @@ func unstuck_from_buping_walls() -> void:
 			#print("No chao com wall enabled e wall_check colidindo")
 	if global_position.distance_to(last_bump_position) > 30:
 		bump_counter += 1
-		print("Bumpou, ",bump_counter)
 		#print("Bateu: ",bump_counter)
 	else:
-		print("A posicao eh muito curta")
 		bump_counter = 1
 		last_bump_position = global_position
 	if bump_counter >= 2:
-		print("Bump counter maior que 3")
 		velocity.y = JUMP_FORCE * (escape_jump_multiplier + 0.6)
 		velocity.x = (SPEED+200) * direction
 		is_jumping = true
@@ -229,7 +235,6 @@ func unstuck_from_buping_walls() -> void:
 		_flip_direction(direction * -1)
 		set_physics_process(true)
 	elif wall_check.is_colliding():
-		print("Esta colidindo na parede")
 		velocity.y = JUMP_FORCE * randf_range(0.8, 1.2)
 		velocity.x = (250) * direction
 		wall_check.enabled = false
@@ -251,10 +256,8 @@ func _get_safe_jump_direction() -> int:
 		#return[-1,1].pick_random()
 		
 	if right_safe:
-		print("Right safe")
 		return 1
 	if left_safe:
-		print("Left safe")
 		return -1
 	else:
 		return 0
@@ -287,5 +290,6 @@ func _flip_direction(new_dir: int) -> void:
 			new_dir = 1
 	direction = new_dir
 	update_sensors()
+	_set_random_timer()
 	#can_change_direction = false
 	#get_tree().create_timer(2).timeout.connect(func(): can_change_direction = true)

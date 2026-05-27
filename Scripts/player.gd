@@ -77,8 +77,8 @@ func _input(event: InputEvent) -> void:
 			if code_progress == code_sequence.size():
 				classic = not classic
 				code_progress = 0
-				if classic:
-					is_running = false #Remove sprinting from classic mode
+				#if classic:
+					#is_running = false #Remove sing from classic mode
 				print("Classic Controllers!!", classic)
 		else:
 			code_progress = 0
@@ -160,7 +160,7 @@ func _physics_process(delta: float) -> void:
 	#Horizontal Movement
 	#var direction = Input.get_axis("ui_left","ui_right")
 	var direction = Input.get_axis("move_left","move_right")
-	var current_speed = SPEED + 40 if is_running else SPEED
+	var current_speed = SPEED + 70 if is_running else SPEED
 	if classic:
 		if not is_on_floor() and not air_control_locked:
 			air_control_locked = true
@@ -218,13 +218,12 @@ func movement(direction,current_speed,deceleration = 8):
 	if direction:
 		velocity.x = direction * current_speed
 	else:
-		velocity.x = move_toward(velocity.x,0,deceleration)
+		velocity.x = 0
 
 func swap_weapon() -> void:
 	if not can_swap:
 		return
 	current_weapon = 2 if current_weapon == 1 else 1
-	print("Swaped to weapon: ", current_weapon)
 	can_swap = false
 	get_tree().create_timer(2.5).timeout.connect(func(): can_swap = true)
 
@@ -232,7 +231,6 @@ func swap_weapon() -> void:
 			
 
 func shoot() -> void:
-	#print("shoot called, weapon: ", current_weapon, " can_shoot: ", can_shoot)
 	if not can_shoot:
 		return
 	match current_weapon:
@@ -277,7 +275,7 @@ func _shoot_bullet(scene: PackedScene) -> void:
 	bullet.add_to_group("bullet")
 	current_bullets += 1
 	bullet.tree_exited.connect(func(): current_bullets -= 1)
-	#aprint("Current bullets: ", current_bullets)
+
 	
 func apply_knockback(from_position: Vector2):
 	var direction = sign(global_position.x - from_position.x)
@@ -288,7 +286,6 @@ func apply_knockback(from_position: Vector2):
 	was_on_floor_hit = is_on_floor()
 	hit_position_y = global_position.y
 	if classic:
-		print("Classic knockback called")
 		knockback_timer.start(classic_knockback_timer)
 	else:
 		knockback_timer.start(normal_knock_back_timer)
@@ -329,7 +326,6 @@ func take_damage(s: AnimatedSprite2D = player) -> void:
 	_invincible_frames_blinks(s)
 	invincibility_timer.start(2)
 	if health <= 0:
-		#print("Die chamado")
 		die()
 
 func _on_area_2d_area_exited(area: Area2D) -> void:
