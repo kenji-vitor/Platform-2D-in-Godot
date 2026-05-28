@@ -29,6 +29,8 @@ var can_shoot = true
 #Timers
 @onready var knockback_timer = $KnockbackTimer
 @onready var invincibility_timer = $InvincibilityTimer
+@onready var jump_forgiveness_timer = $JumpForgiveTimer
+var jump_forgiveness_counter = 0.0
 
 var classic_knockback_timer = 5.0
 var normal_knock_back_timer = 0.4
@@ -90,21 +92,20 @@ func _input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("jump") and Input.is_action_pressed("down") and jump_left > 0:
 		drop_through_platform()
 		return
-	if Input.is_action_just_pressed("jump") and jump_left > 0 and not is_knockback:
-		jump()
-
-		if jump_left == max_jumps - 1:
-			air_direction = sign(velocity.x)
-			if air_direction == 0:
-				#air_direction = Input.get_axis("ui_left","ui_right")
-				air_direction = Input.get_axis("move_left","move_right")
-			air_control_locked = true
+		
+	if Input.is_action_just_pressed("jump") and not is_knockback:
+		if classic:
+			if jump_left > 0:
+				jump()
 		else:
-			#air_direction = Input.get_axis("ui_left","ui_right")
-			air_direction = Input.get_axis("move_left","move_right")
-	if not classic:
-		if Input.is_action_just_pressed("run"):
-			is_running = not is_running
+			if jump_left > 0 or jump_forgiveness_counter > 0.0:
+				if not is_on_floor() and jump_forgiveness_counter > 0.0 and jump_left == max_jumps:
+					jump_forgiveness_counter = 0.0
+					print("Salvo pelo Coyote Time")
+				jump()
+
+	if Input.is_action_just_pressed("run"):
+		is_running = not is_running
 
 	#if Input.is_action_just_pressed("down"):
 	#	await get_tree().create_timer(0.3)
@@ -113,6 +114,9 @@ func _input(event: InputEvent) -> void:
 	#	set_collision_mask_value(10,true)
 
 func _physics_process(delta: float) -> void:
+	
+	if invincibility_timer.time_left > 0.0:
+		print("Tempo de invincibility: ", str(invincibility_timer.time_left).left(4))
 	#var parallax = get_parent().get_node("$ParallaxBackground")
 	#aparallax.scroll_offset.y = global_position.y
 	#print(player.global_position)
@@ -127,8 +131,6 @@ func _physics_process(delta: float) -> void:
 					knockback_timer.start(0.8)
 					knockback_timer_shortened = true
 				elif fall_distance >= 20 and velocity.y > 0:
-					#if knockback_timer.time_left > 0.8:
-						#knockback_timer.start(0.8)
 					knockback_timer_shortened = true
 		else:
 			velocity.x = move_toward(velocity.x,0,20)
@@ -137,9 +139,76 @@ func _physics_process(delta: float) -> void:
 					knockback_timer.start(1.0)
 		move_and_slide()
 		return
+	var direction = Input.get_axis("move_left","move_right")
+	var current_speed = SPEED + 70 if is_running else SPEED
 	
+	if classic:
+		if not is_on_floor():
+			velocity.y += gravity * delta
+			if jump_left == max_jumps:
+				jump_left = max_jumps - 1
+			if not air_control_locked:
+				air_control_locked = true
+				if direction != 0:
+					air_direction = direction
+				else:
+					direction = sign(velocity.x)
+		else: #ON FLOOR
+			has_jumped = false
+			air_control_locked = false
+			jump_left = max_jumps
+			
+			movement(direction, current_speed, classic_deceleration)
+			
+			if velocity.x > 0:
+				player.flip_h = false
+			elif velocity.x < -0:
+				player.flip_h = true
+			
+		if not is_on_floor():
+			velocity.x = air_direction * current_speed
+			if air_direction < 0:
+				player.flip_h = true
+			elif air_direction > 0:
+				player.flip_h = false
+				
+				
+	else: #NORMAL MODE
+		if not is_on_floor():
+			velocity.y += gravity * delta
+			jump_forgiveness_counter -= delta
+			
+			if jump_forgiveness_counter <= 0.0 and jump_left == max_jumps:
+				jump_left = max_jumps - 1
+		else:
+			jump_forgiveness_counter = jump_forgiveness_timer.wait_time
+			has_jumped =  false
+			air_control_locked = false
+			jump_left = max_jumps
+		movement(direction,current_speed,normal_deceleration)
+		
+		if velocity.x < 0:
+			player.flip_h = true
+		if velocity.x > 0:
+			player.flip_h = false
+	move_and_slide()
+	handle_animations(delta)
+	
+	if Input.is_action_pressed("shoot"):
+		if classic:
+			if not is_knockback:
+				shoot()
+		else:
+			shoot()
+
+	if global_position.y > 1500:
+		die()
+
+
+
+func handle_animations(delta):
 	if not is_on_floor():
-		velocity.y += gravity * delta
+		#velocity.y += gravity * delta
 		if velocity.y < 0:
 			player.animation = "Jump"
 		else:
@@ -148,71 +217,7 @@ func _physics_process(delta: float) -> void:
 		player.animation = "Sprint"
 	else:
 		player.animation = "Idle"
-		
-	if Input.is_action_pressed("shoot"):
-		if classic:
-			if not is_knockback:
-				shoot()
-		else:
-			shoot()
-	#Gravity
-
-	#Horizontal Movement
-	#var direction = Input.get_axis("ui_left","ui_right")
-	var direction = Input.get_axis("move_left","move_right")
-	var current_speed = SPEED + 70 if is_running else SPEED
-	if classic:
-		if not is_on_floor() and not air_control_locked:
-			air_control_locked = true
-			if has_jumped:
-				air_direction = Input.get_axis("move_left","move_right")
-			else:
-				air_direction = 0
-		if air_control_locked:
-			velocity.x = air_direction * current_speed
-			
-			var look_direction = Input.get_axis("move_left","move_right")
-			if look_direction < 0:
-				player.flip_h = true
-			elif look_direction > 0:
-				player.flip_h = false
-		else:
-			movement(direction,current_speed,classic_deceleration)
-	else:
-		movement(direction,current_speed,normal_deceleration)
-		
-	move_and_slide()
 	
-	if is_on_floor():
-		jump_left = max_jumps
-		has_jumped = false
-		air_control_locked = false
-		if classic:
-			if velocity.x > 0:
-				player.flip_h = false
-			elif velocity.x < 0:
-				player.flip_h = true
-
-		
-	elif was_on_floor and not has_jumped:
-		jump_left = 1
-	was_on_floor = is_on_floor()
-	
-
-
-	
-	#if Input.is_action_just_pressed('ui_left'):
-	if not classic:
-		if velocity.x < 0:
-			player.flip_h = true
-		elif velocity.x > 0:
-			player.flip_h = false
-
-	#var is_falling_off = was_on_floor and not on_floor and velocity.y >= 0
-
-	
-	if global_position.y > 1500:
-		die()
 
 func movement(direction,current_speed,deceleration = 8):
 	if direction:
@@ -296,8 +301,23 @@ func jump():
 	if jump_left <= 0:
 		return
 	velocity.y = JUMP_VEL - 15
+	if classic:
+		var jump_direction = Input.get_axis("move_left","move_right")
+		if jump_left == max_jumps:
+			if jump_direction != 0:
+				air_direction = jump_direction
+			else:
+				air_direction = sign(velocity.x)
+		else:
+			if jump_direction != 0:
+				air_direction = jump_direction
+			else:
+				air_direction = 0
+		air_control_locked = true
 	jump_left -= 1
+	print("Jump left: ",jump_left)
 	has_jumped = true
+
 
 func drop_through_platform():
 	set_collision_mask_value(10,false)
@@ -324,7 +344,7 @@ func take_damage(s: AnimatedSprite2D = player) -> void:
 	is_invincible = true
 	$Area2D.monitoring = false
 	_invincible_frames_blinks(s)
-	invincibility_timer.start(2)
+	invincibility_timer.start()
 	if health <= 0:
 		die()
 
@@ -345,3 +365,7 @@ func _on_knockback_timer_timeout() -> void:
 func _on_invincibility_timer_timeout() -> void:
 	is_invincible = false
 	$Area2D.monitoring = true
+
+
+func _on_jump_forgive_timer_timeout() -> void:
+	pass # Replace with function body.

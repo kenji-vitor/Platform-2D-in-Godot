@@ -19,5 +19,9 @@ wait_time = 6.0
 [node name="InvincibilityTimer" type="Timer" parent="." index="6" unique_id=1395724339]
 one_shot = true
 
+[node name="JumpForgiveTimer" type="Timer" parent="." index="7" unique_id=833592151]
+wait_time = 0.1
+
 [connection signal="timeout" from="KnockbackTimer" to="." method="_on_knockback_timer_timeout"]
 [connection signal="timeout" from="InvincibilityTimer" to="." method="_on_invincibility_timer_timeout"]
+[connection signal="timeout" from="JumpForgiveTimer" to="." method="_on_jump_forgive_timer_timeout"]
