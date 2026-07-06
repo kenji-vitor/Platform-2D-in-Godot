@@ -11,6 +11,8 @@ var is_knockback = false
 var current_weapon = 2
 
 
+
+
 @export var max_jumps: int = 2
 var jump_left : int = 2
 
@@ -52,7 +54,7 @@ var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 var spawn_position: Vector2
 
 const weapon1_limit = 20
-const weapon1_cooldwon = 0.4
+const weapon1_cooldown = 0.4
 
 const  weapon2_limit = 15
 const weapon2_cooldown = 0.8
@@ -66,6 +68,11 @@ var was_on_floor_hit = false
 var hit_position_y = 0.0
 
 var knockback_timer_shortened = false
+
+#SFX
+@onready var jump_sfx: AudioStreamPlayer2D = $jump_sfx
+@onready var weapon1_sfx: AudioStreamPlayer2D = $weapon1_sfx
+@onready var weapon2_sfx: AudioStreamPlayer2D = $weapon2_sfx
 
 func _ready() -> void:
 	spawn_position = global_position
@@ -230,7 +237,7 @@ func swap_weapon() -> void:
 		return
 	current_weapon = 2 if current_weapon == 1 else 1
 	can_swap = false
-	get_tree().create_timer(2.5).timeout.connect(func(): can_swap = true)
+	get_tree().create_timer(1.0).timeout.connect(func(): can_swap = true)
 
 	
 			
@@ -241,16 +248,18 @@ func shoot() -> void:
 	match current_weapon:
 		1: 
 			shoot_weapon1()
-			
+			weapon1_sfx.play()
 		2: 
 			shoot_weapon2()
+			weapon2_sfx.play()
+				
 
 func shoot_weapon1() -> void:
 	max_bullet = weapon1_scene.instantiate()
 	if current_bullets >= weapon1_limit:
 		return
 	can_shoot = false
-	get_tree().create_timer(weapon1_cooldwon).timeout.connect(func(): can_shoot = true)
+	get_tree().create_timer(weapon1_cooldown).timeout.connect(func(): can_shoot = true)
 	_shoot_bullet(weapon1_scene)
 
 func shoot_weapon2() -> void:
@@ -267,10 +276,10 @@ func _shoot_bullet(scene: PackedScene) -> void:
 	var bullet = scene.instantiate()
 	get_parent().add_child(bullet)
 	if player.flip_h:
-		bullet.global_position = shoot_point.global_position+ Vector2(-10,0)
+		bullet.global_position = shoot_point.global_position + Vector2(-10,0)
 		bullet.direction = -1
 	else:
-		bullet.global_position = shoot_point.global_position+ Vector2(10,0)
+		bullet.global_position = shoot_point.global_position + Vector2(10,0)
 		bullet.direction = 1
 	bullet.target = self
 	bullet.add_collision_exception_with(self)
@@ -300,6 +309,7 @@ func apply_knockback(from_position: Vector2):
 func jump():
 	if jump_left <= 0:
 		return
+	jump_sfx.play()
 	velocity.y = JUMP_VEL - 15
 	if classic:
 		var jump_direction = Input.get_axis("move_left","move_right")

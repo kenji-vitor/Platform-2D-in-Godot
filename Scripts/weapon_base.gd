@@ -4,6 +4,7 @@ extends CharacterBody2D
 var direction = 2
 @export var rotation_speed = 18
 var target : Node2D
+#@export var x_limit = 750.0
 @export var x_limit = 750.0
 @export var x_min_limit = -3000.0
 @export var x_max_limit = 3000.0
@@ -20,9 +21,6 @@ func _physics_process(delta: float) -> void:
 	var collision = move_and_collide(Vector2(speed*direction,0) * delta)
 	if collision:
 		queue_free()
-		
-	
-	
 	#if target != null:
 		#var diff = target.global_position.y - global_position.y
 		#velocity.y = diff * 1.0

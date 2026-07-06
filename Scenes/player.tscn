@@ -222,6 +222,7 @@ visible = false
 collision_layer = 257
 collision_mask = 768
 script = ExtResource("1_fkybt")
+max_jumps = 100
 health = 3
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=941819051 groups=["player"]]

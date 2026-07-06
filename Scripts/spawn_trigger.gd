@@ -10,11 +10,13 @@ enum SpawnMode {LOOP, LIMITED}
 @export var spawn_SPEED: Array[int] = []
 
 
-@export var deactivation_distance: float = 800.0
+@export var deactivation_distance: float = 500.0
 
 var spawn_timers: Array[float] = []
 var spawn_current_enemies: Array[int] = []
 var total_spawned_per_point: Array[int] = []
+
+var active_enemies: Array[Node2D] = []
 
 @export var spawn_interval: float = 3.0
 @export var max_enemies: int = 0
@@ -54,7 +56,7 @@ func _physics_process(delta: float) -> void:
 			return
 		'''
 		if player:
-			var min_distance = 9999999.0
+			var min_distance = 999999.0
 			
 			for spawn_pos in spawn_positions:
 				var d = spawn_pos.distance_to(player.global_position)
@@ -63,6 +65,7 @@ func _physics_process(delta: float) -> void:
 
 			if min_distance > deactivation_distance:
 				triggered = false
+				_despawn_all_enemies()
 				return
 	if not triggered:
 		return
@@ -90,13 +93,31 @@ func _spawn_enemy_at(index: int) -> void:
 		enemy.direction = spawn_directions[index]
 		enemy.SPEED = spawn_SPEED[index]
 	spawn_current_enemies[index] += 1
+	active_enemies.append(enemy)
 	match spawn_mode:
 		SpawnMode.LOOP:
 			#Loop mode decreases index to loop enemies 
-			enemy.tree_exited.connect(func(): spawn_current_enemies[index] -= 1)
+			enemy.tree_exited.connect(func(): 
+				spawn_current_enemies[index] -= 1
+				if enemy in active_enemies:
+					active_enemies.erase(enemy)
+				)
 		SpawnMode.LIMITED:
+			enemy.tree_exited.connect(func():
+				if enemy in active_enemies:
+					active_enemies.erase(enemy)
+				)
 			#Just pass, 'if' will lock it in spawn_current_enemes[i] < max_e (FALSE):
 			pass
+
+func _despawn_all_enemies() -> void:
+	var count = 0
+	for enemy in active_enemies:
+		if is_instance_valid(enemy):
+			count += 1
+			enemy.queue_free()
+	print("Sucesso: ",count," inimigos foram despawnados do jogo.")
+	active_enemies.clear()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
@@ -111,38 +132,3 @@ func _on_body_entered(body: Node2D) -> void:
 func _on_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player") and stop_and_exit:
 		triggered = false
-
-'''
-func _start_spawning() -> void:
-	is_spawning = true
-	while triggered:
-		if current_enemies < max_enemies:
-			match spawn_mode:
-				SpawnMode.LOOP:
-					if current_enemies < max_enemies:
-						_spawn_enemy()
-				SpawnMode.LIMITED:
-					if total_spawned >= spawn_limit:
-						return
-					_spawn_enemy()
-		await get_tree().create_timer(spawn_interval).timeout
-	is_spawning = false
-'''
-'''
-func _spawn_enemy() -> void:
-	if spawn_positions.is_empty():
-		return
-	var index = randi() % spawn_positions.size()
-	var enemy = enemy_scene.instantiate()
-	get_parent().add_child(enemy)
-	enemy.global_position = spawn_positions[index]
-	if index < spawn_directions.size():
-		enemy.direction = spawn_directions[index]
-		
-	#if index < max_enemies_spawn.size():
- 		#enemy.max_enemies = max_enemies_spawn[index]
-	current_enemies += 1
-	total_spawned += 1
-	enemy.tree_exited.connect(func(): current_enemies -= 1)
-	print("Enemy spawned at: ", enemy.global_position)
-'''

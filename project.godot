@@ -15,6 +15,10 @@ run/main_scene="uid://d4f1r62g7bb7b"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[autoload]
+
+GameManager="*uid://bx8wwglyka3ys"
+
 [debug]
 
 shapes/collision/draw_2d_outlines=false
