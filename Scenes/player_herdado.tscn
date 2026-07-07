@@ -2,8 +2,6 @@
 
 [ext_resource type="PackedScene" uid="uid://5uvbk6v0q52k" path="res://Scenes/player.tscn" id="1_uruiy"]
 [ext_resource type="AudioStream" uid="uid://m5as5rv78ly8" path="res://SFX/jump_sfx.wav" id="2_wteag"]
-[ext_resource type="AudioStream" uid="uid://ddf2jmas2gr2y" path="res://SFX/weapon1_sfx.wav" id="3_gcm4n"]
-[ext_resource type="AudioStream" uid="uid://bl3j6cpxae5g3" path="res://SFX/weapon2_sfx.wav" id="4_1awyu"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_uruiy"]
 size = Vector2(9, 13)
@@ -29,11 +27,7 @@ wait_time = 0.1
 stream = ExtResource("2_wteag")
 volume_db = -24.163
 
-[node name="weapon1_sfx" type="AudioStreamPlayer2D" parent="." index="9" unique_id=6823522]
-stream = ExtResource("3_gcm4n")
-
-[node name="weapon2_sfx" type="AudioStreamPlayer2D" parent="." index="10" unique_id=391503022]
-stream = ExtResource("4_1awyu")
+[node name="weapon_sfx" type="AudioStreamPlayer2D" parent="." index="9" unique_id=1563408562]
 
 [connection signal="timeout" from="KnockbackTimer" to="." method="_on_knockback_timer_timeout"]
 [connection signal="timeout" from="InvincibilityTimer" to="." method="_on_invincibility_timer_timeout"]

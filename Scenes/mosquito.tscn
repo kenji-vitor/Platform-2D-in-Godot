@@ -140,8 +140,8 @@ material = SubResource("ShaderMaterial_8sq3t")
 position = Vector2(-0.9999981, 1)
 scale = Vector2(0.9375, 0.9375)
 sprite_frames = SubResource("SpriteFrames_ot03a")
-animation = &"Move"
-frame_progress = 0.06384943
+animation = &"Die"
+autoplay = "Move"
 
 [node name="Area2D" type="Area2D" parent="." unique_id=68470310]
 position = Vector2(2, -8)

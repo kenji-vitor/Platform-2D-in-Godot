@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dy4sf7fwuvys" path="res://Scripts/flower.gd" id="1_4r3j5"]
 [ext_resource type="Texture2D" uid="uid://crj1c3qo6iuf8" path="res://Images/Candy Milk tileset.png" id="2_hbmji"]
-[ext_resource type="AudioStream" uid="uid://d0eve6s0wiceh" path="res://SFX/metal-slug-thank-you-tenkiu.mp3" id="3_hbmji"]
+[ext_resource type="AudioStream" uid="uid://c5ncri1lft05k" path="res://SFX/metal-slug-thank-you-tenkiu.wav" id="3_hbmji"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_4r3j5"]
 radius = 8.0

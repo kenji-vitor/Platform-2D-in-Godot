@@ -71,8 +71,15 @@ var knockback_timer_shortened = false
 
 #SFX
 @onready var jump_sfx: AudioStreamPlayer2D = $jump_sfx
-@onready var weapon1_sfx: AudioStreamPlayer2D = $weapon1_sfx
-@onready var weapon2_sfx: AudioStreamPlayer2D = $weapon2_sfx
+@onready var weapon_sfx: AudioStreamPlayer2D = $weapon_sfx
+
+var sfx_weapon_variations: Array[AudioStream] = [
+	load("res://SFX/weapon_variation1.wav"),
+	load("res://SFX/weapon_variation2.wav"),
+	load("res://SFX/weapon_variation3.wav"),
+	load("res://SFX/weapon_variation4.wav"),
+	load("res://SFX/weapon_variation5.wav"),
+]
 
 func _ready() -> void:
 	spawn_position = global_position
@@ -147,8 +154,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 	var direction = Input.get_axis("move_left","move_right")
-	var current_speed = SPEED + 70 if is_running else SPEED
-	
+	var current_speed = SPEED + 40 if is_running else SPEED
 	if classic:
 		if not is_on_floor():
 			velocity.y += gravity * delta
@@ -248,11 +254,18 @@ func shoot() -> void:
 	match current_weapon:
 		1: 
 			shoot_weapon1()
-			weapon1_sfx.play()
+			play_weapon_sfx()
 		2: 
 			shoot_weapon2()
-			weapon2_sfx.play()
+			play_weapon_sfx()
 				
+
+func play_weapon_sfx():
+	if sfx_weapon_variations.size() > 0:
+		var random_sound = sfx_weapon_variations.pick_random()
+		weapon_sfx.stream = random_sound
+		weapon_sfx.play() 
+	
 
 func shoot_weapon1() -> void:
 	max_bullet = weapon1_scene.instantiate()
@@ -310,7 +323,10 @@ func jump():
 	if jump_left <= 0:
 		return
 	jump_sfx.play()
-	velocity.y = JUMP_VEL - 15
+	if not is_running:
+		velocity.y = JUMP_VEL - 15
+	else:
+		velocity.y = JUMP_VEL + 20
 	if classic:
 		var jump_direction = Input.get_axis("move_left","move_right")
 		if jump_left == max_jumps:

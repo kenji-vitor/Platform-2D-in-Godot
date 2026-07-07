@@ -170,6 +170,7 @@ position = Vector2(-0.9999981, -4)
 scale = Vector2(0.9375, 0.9375)
 sprite_frames = SubResource("SpriteFrames_ot03a")
 animation = &"Move"
+autoplay = "Move"
 
 [node name="Area2D" type="Area2D" parent="." unique_id=68470310]
 visible = false

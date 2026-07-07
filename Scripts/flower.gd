@@ -12,9 +12,11 @@ func _ready() -> void:
 	
 func _on_area_2d_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
-		GameManager.add_flower()
-		$AnimatedSprite2D.play("collected")
-		thank_you_sfx.play()
-		
-		await thank_you_sfx.finished
-		self.queue_free()
+		if not already_collected:
+			GameManager.add_flower()
+			already_collected = true
+			$AnimatedSprite2D.play("collected")
+			thank_you_sfx.play()
+			
+			await thank_you_sfx.finished
+			self.queue_free()
