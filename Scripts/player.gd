@@ -10,7 +10,7 @@ var is_knockback = false
 @onready var shoot_point = $ShootPoint
 var current_weapon = 2
 
-
+var hearts_list : Array[TextureRect]
 
 
 @export var max_jumps: int = 2
@@ -39,9 +39,9 @@ var normal_knock_back_timer = 0.4
 var is_invincible = false
 
 #Difficulty
-var code_sequence = ["h","a","r","d"]
-var code_progress = 0
-var classic = false #Oldschool movement
+#var code_sequence = ["h","a","r","d"]
+#var code_progress = 0
+#var classic = false #Oldschool movement
 var classic_deceleration = 100
 var normal_deceleration = 8
 
@@ -56,12 +56,16 @@ var spawn_position: Vector2
 const weapon1_limit = 20
 const weapon1_cooldown = 0.4
 
-const  weapon2_limit = 15
+const weapon2_limit = 15
 const weapon2_cooldown = 0.8
 
 var can_swap = true
 
-var is_running = false
+#Run
+@export var ACCELERATION: float = 300.0
+@export var FRICTION: float = 400.0
+#Friction = 1 para nao ter friccao
+var is_running = GameManager.is_action_pressed("run")
 
 var was_on_floor_hit = false
 
@@ -82,33 +86,25 @@ var sfx_weapon_variations: Array[AudioStream] = [
 ]
 
 func _ready() -> void:
+	var hearts_parent = $health_bar/HBoxContainer
+	hearts_list.clear()
+	for child in hearts_parent.get_children():
+		if child is TextureRect:
+			hearts_list.append(child)
+	health = hearts_list.size()
+	
+	print("Corações carregados: ", hearts_list.size())
+	print("Vida inicializada em: ", health)
+		
 	spawn_position = global_position
 	jump_left = max_jumps
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and classic == false:
-		var key = OS.get_keycode_string(event.keycode).to_lower()
-		if key == code_sequence[code_progress]:
-			code_progress += 1
-			if code_progress == code_sequence.size():
-				classic = not classic
-				code_progress = 0
-				#if classic:
-					#is_running = false #Remove sing from classic mode
-				print("Classic Controllers!!", classic)
-		else:
-			code_progress = 0
-	
-	if Input.is_action_just_pressed("swap_weapon"):
-		swap_weapon()
-	
-	#print("Jump left: ", jump_left)
 	if Input.is_action_just_pressed("jump") and Input.is_action_pressed("down") and jump_left > 0:
 		drop_through_platform()
 		return
-		
-	if Input.is_action_just_pressed("jump") and not is_knockback:
-		if classic:
+	if GameManager.is_action_just_pressed("jump") and not is_knockback:
+		if GameManager.classic:
 			if jump_left > 0:
 				jump()
 		else:
@@ -118,8 +114,14 @@ func _input(event: InputEvent) -> void:
 					print("Salvo pelo Coyote Time")
 				jump()
 
-	if Input.is_action_just_pressed("run"):
+	if Input.is_action_just_pressed("swap_weapon"):
+		swap_weapon()
+
+	if GameManager.is_action_just_pressed("run"):
 		is_running = not is_running
+		# Tiro estático ou em movimento
+	if GameManager.is_action_pressed("shoot"):
+		shoot()
 
 	#if Input.is_action_just_pressed("down"):
 	#	await get_tree().create_timer(0.3)
@@ -128,97 +130,94 @@ func _input(event: InputEvent) -> void:
 	#	set_collision_mask_value(10,true)
 
 func _physics_process(delta: float) -> void:
+	var direction = Input.get_axis("move_left","move_right")
+	#var current_speed = SPEED + 40 if is_running else SPEED
 	
-	if invincibility_timer.time_left > 0.0:
-		print("Tempo de invincibility: ", str(invincibility_timer.time_left).left(4))
-	#var parallax = get_parent().get_node("$ParallaxBackground")
-	#aparallax.scroll_offset.y = global_position.y
-	#print(player.global_position)
-	_check_enemy_overlay()
+	if GameManager.is_drunk:
+		if direction != 0:
+			
+			GameManager.drunk_direction = direction
+		direction = GameManager.drunk_direction
+	
+	
+	var target_max_speed = (SPEED + 80.0) if is_running else SPEED
+	
+	var target_velocity_x = direction * target_max_speed
+
+		
 	if is_knockback:
 		if not is_on_floor():
 			velocity.y += gravity * delta
-			if classic and not knockback_timer_shortened:
+			if GameManager.classic and not knockback_timer_shortened:
 				var fall_distance = global_position.y - hit_position_y
-				#print(fall_distance)
 				if fall_distance < 20 and velocity.y > 0:
 					knockback_timer.start(0.8)
 					knockback_timer_shortened = true
 				elif fall_distance >= 20 and velocity.y > 0:
 					knockback_timer_shortened = true
 		else:
-			velocity.x = move_toward(velocity.x,0,20)
-			if classic and was_on_floor_hit:
-				if knockback_timer.time_left > 1.0:
-					knockback_timer.start(1.0)
+			velocity.x = move_toward(velocity.x, 0, 20)
+			if was_on_floor_hit and knockback_timer.time_left > 1.0:
+				knockback_timer.start(1.0)
 		move_and_slide()
+		handle_animations(delta)
 		return
-	var direction = Input.get_axis("move_left","move_right")
-	var current_speed = SPEED + 40 if is_running else SPEED
-	if classic:
+	
+	if GameManager.classic:
 		if not is_on_floor():
 			velocity.y += gravity * delta
-			if jump_left == max_jumps:
+			
+			if jump_left == max_jumps and not has_jumped:
 				jump_left = max_jumps - 1
+		
 			if not air_control_locked:
 				air_control_locked = true
 				if direction != 0:
 					air_direction = direction
 				else:
-					direction = sign(velocity.x)
-		else: #ON FLOOR
-			has_jumped = false
-			air_control_locked = false
-			jump_left = max_jumps
-			
-			movement(direction, current_speed, classic_deceleration)
-			
-			if velocity.x > 0:
-				player.flip_h = false
-			elif velocity.x < -0:
-				player.flip_h = true
-			
-		if not is_on_floor():
-			velocity.x = air_direction * current_speed
-			if air_direction < 0:
-				player.flip_h = true
-			elif air_direction > 0:
-				player.flip_h = false
-				
-				
-	else: #NORMAL MODE
+					air_direction = sign(velocity.x)
+			velocity.x = air_direction * target_max_speed
+		else:
+			if velocity.y >= 0:
+				has_jumped = false
+				air_control_locked = false
+				jump_left = max_jumps
+			movement(direction, target_max_speed,delta)
+
+	else:
 		if not is_on_floor():
 			velocity.y += gravity * delta
 			jump_forgiveness_counter -= delta
 			
 			if jump_forgiveness_counter <= 0.0 and jump_left == max_jumps:
 				jump_left = max_jumps - 1
+			movement(direction,target_max_speed,delta)
 		else:
 			jump_forgiveness_counter = jump_forgiveness_timer.wait_time
-			has_jumped =  false
+			has_jumped = false
 			air_control_locked = false
 			jump_left = max_jumps
-		movement(direction,current_speed,normal_deceleration)
-		
-		if velocity.x < 0:
-			player.flip_h = true
-		if velocity.x > 0:
-			player.flip_h = false
+			movement(direction, target_max_speed,delta)
+	
+	# Virar o Sprite
+	if velocity.x < 0:
+		player.flip_h = true
+	elif velocity.x > 0:
+		player.flip_h = false
+
+
+
+	# Aplica Movimento e Animações
 	move_and_slide()
 	handle_animations(delta)
-	
-	if Input.is_action_pressed("shoot"):
-		if classic:
-			if not is_knockback:
-				shoot()
-		else:
-			shoot()
 
+	# Checa Dano contínuo
+	_check_enemy_overlay()
+
+	# Morte por Queda
 	if global_position.y > 1500:
 		die()
-
-
-
+		
 func handle_animations(delta):
 	if not is_on_floor():
 		#velocity.y += gravity * delta
@@ -231,13 +230,31 @@ func handle_animations(delta):
 	else:
 		player.animation = "Idle"
 	
-
-func movement(direction,current_speed,deceleration = 8):
-	if direction:
-		velocity.x = direction * current_speed
+'''
+#Movimento com aceleracao gradual no chao
+func movement_ground(direction: float ,target_speed: float, delta: float) -> void:
+	var target_velocity_x = direction * target_speed
+	if direction != 0:
+		velocity.x = move_toward(velocity.x, target_velocity_x, ACCELERATION * delta)
 	else:
-		velocity.x = 0
+		velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
 
+func movement_air(direction:float,target_speed:float) -> void:
+	if direction != 0:
+		velocity.x = direction * target_speed
+	else:
+		velocity.x = 0.0
+'''
+func movement(direction:float, target_speed: float, delta: float) -> void:
+	if GameManager.is_slippery and is_on_floor():
+		var target_velocity_x = direction * target_speed
+		if direction != 0:
+			velocity.x = move_toward(velocity.x, target_velocity_x, ACCELERATION * delta)
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
+	else:
+		velocity.x = direction * target_speed
+		
 func swap_weapon() -> void:
 	if not can_swap:
 		return
@@ -312,7 +329,7 @@ func apply_knockback(from_position: Vector2):
 	is_knockback = true
 	was_on_floor_hit = is_on_floor()
 	hit_position_y = global_position.y
-	if classic:
+	if GameManager.classic:
 		knockback_timer.start(classic_knockback_timer)
 	else:
 		knockback_timer.start(normal_knock_back_timer)
@@ -324,10 +341,10 @@ func jump():
 		return
 	jump_sfx.play()
 	if not is_running:
-		velocity.y = JUMP_VEL - 15
+		velocity.y = JUMP_VEL - 20
 	else:
-		velocity.y = JUMP_VEL + 20
-	if classic:
+		velocity.y = JUMP_VEL * 0.85
+	if GameManager.classic:
 		var jump_direction = Input.get_axis("move_left","move_right")
 		if jump_left == max_jumps:
 			if jump_direction != 0:
@@ -337,8 +354,6 @@ func jump():
 		else:
 			if jump_direction != 0:
 				air_direction = jump_direction
-			else:
-				air_direction = 0
 		air_control_locked = true
 	jump_left -= 1
 	print("Jump left: ",jump_left)
@@ -367,12 +382,19 @@ func take_damage(s: AnimatedSprite2D = player) -> void:
 	if s == null:
 		s = player
 	super.take_damage(s)
+	update_heart_display()
 	is_invincible = true
 	$Area2D.monitoring = false
 	_invincible_frames_blinks(s)
 	invincibility_timer.start()
 	if health <= 0:
 		die()
+
+func update_heart_display():
+	for i in range(hearts_list.size()):
+		hearts_list[i].visible = i < health
+		
+
 
 func _on_area_2d_area_exited(area: Area2D) -> void:
 	pass # Replace with function body.
