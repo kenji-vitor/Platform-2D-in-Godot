@@ -130,7 +130,7 @@ func _physics_process(delta: float) -> void:
 
 	# --- RECUPERAÇÃO DE TRAVAMENTO EM PAREDES ---
 	if is_on_wall() and is_on_floor():
-		print("COLIDIU NA PAREDE E ESTA NO CHAO")
+		#print("COLIDIU NA PAREDE E ESTA NO CHAO")
 		# Se colidiu horizontalmente de frente e o sensor frontal confirmar parede, executa rotina de destravamento
 		if wall_check.enabled and wall_check.is_colliding():
 			#unstuck_from_buping_walls()
