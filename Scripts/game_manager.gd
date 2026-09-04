@@ -31,9 +31,13 @@ var total_flower: int = 0
 var is_slippery: bool = false 
 var slippery_timer: Timer
 
-#Invincible
+#Invincible + Invisible
 var is_invincible: bool = false
 var invincible_timer: Timer
+
+#AutoRun
+var is_autorunning: bool = false
+var autorun_timer: Timer
 '''
 func roll_double_dice() -> void:
 	var effect_dice: int = randi_range(1,6)
@@ -71,6 +75,13 @@ func make_invincible(duration: float = 5.0) -> void:
 	invincible_timer.start(duration)
 	print("Esta invencivel por: ",duration)
 	
+func make_autorun(duration: float = 5.0) -> void:
+	is_autorunning = true
+	autorun_timer.start(duration)
+	print("Autorunning por: ",duration)
+
+
+
 func _ready() -> void:
 	#Drunk
 	drunk_timer = Timer.new()
@@ -102,6 +113,12 @@ func _ready() -> void:
 	invincible_timer.timeout.connect(_on_invincible_timer_timeout)
 	add_child(invincible_timer)
 	
+	#AutoRun
+	autorun_timer = Timer.new()
+	autorun_timer.one_shot = true
+	autorun_timer.timeout.connect(_on_autorun_timer_timeout)
+	add_child(autorun_timer)
+	
 
 
 func _on_drunk_timer_timeout() -> void:
@@ -124,6 +141,10 @@ func _on_invincible_timer_timeout() -> void:
 	is_invincible = false
 	print("Invencibilidade expirou!")
 
+func _on_autorun_timer_timeout() -> void:
+	is_autorunning = false
+	print("Auto Run expirou!")
+
 func _input(event: InputEvent) -> void:
 	#COMANDO TEMPORARIO PARA ATIVAR AS MECANICAS!!!!!!!!
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -138,6 +159,9 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_L:
 			make_invincible()
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_Y:
+			make_autorun()
 	###################################################
 	if event is InputEventKey and event.pressed:
 		if event.echo:

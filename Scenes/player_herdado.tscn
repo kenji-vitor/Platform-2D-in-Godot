@@ -16,7 +16,7 @@ position = Vector2(-0.5, 0.5)
 shape = SubResource("RectangleShape2D_uruiy")
 
 [node name="KnockbackTimer" type="Timer" parent="." index="5" unique_id=2060949309]
-wait_time = 6.0
+wait_time = 1.5
 
 [node name="InvincibilityTimer" type="Timer" parent="." index="6" unique_id=1395724339]
 one_shot = true
