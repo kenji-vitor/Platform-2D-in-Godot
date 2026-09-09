@@ -441,18 +441,13 @@ func jump() -> void:
 		
 	jump_sfx.play()
 	var current_jump_mult: float = jump_mult 
-	if not GameManager.is_invincible:
-		if is_running:
-			current_jump_mult -= 0.25  
-		else:
-			current_jump_mult += 0.05  
+	if GameManager.is_superjumping:
+		current_jump_mult = 1.6
 	else:
-		if is_running:
-			current_jump_mult -= randf_range(0.30, 0.45)
-		else:
-			current_jump_mult += randf_range(0.10, 0.35)
-	velocity.y = JUMP_VEL * current_jump_mult
+		current_jump_mult = 1.05
 		
+	velocity.y = JUMP_VEL * current_jump_mult
+	print("Current jump mult: ",current_jump_mult)
 	
 	if GameManager.classic:
 		var jump_direction = Input.get_axis("move_left","move_right")

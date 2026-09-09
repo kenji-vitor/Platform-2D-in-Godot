@@ -38,6 +38,10 @@ var invincible_timer: Timer
 #AutoRun
 var is_autorunning: bool = false
 var autorun_timer: Timer
+
+#SuperJump
+var is_superjumping: bool = false
+var superjump_timer: Timer
 '''
 func roll_double_dice() -> void:
 	var effect_dice: int = randi_range(1,6)
@@ -80,7 +84,10 @@ func make_autorun(duration: float = 5.0) -> void:
 	autorun_timer.start(duration)
 	print("Autorunning por: ",duration)
 
-
+func make_superjump(duration: float = 5.0) -> void:
+	is_superjumping = true
+	superjump_timer.start(duration)
+	print("Super jump por: ",duration)
 
 func _ready() -> void:
 	#Drunk
@@ -119,6 +126,13 @@ func _ready() -> void:
 	autorun_timer.timeout.connect(_on_autorun_timer_timeout)
 	add_child(autorun_timer)
 	
+	#SuperJump
+	superjump_timer = Timer.new()
+	superjump_timer.one_shot = true
+	superjump_timer.timeout.connect(_on_superjump_timer_timeout)
+	add_child(superjump_timer)
+	
+	
 
 
 func _on_drunk_timer_timeout() -> void:
@@ -145,6 +159,10 @@ func _on_autorun_timer_timeout() -> void:
 	is_autorunning = false
 	print("Auto Run expirou!")
 
+func _on_superjump_timer_timeout() -> void:
+	is_superjumping = false
+	print("Super jump expirou")
+
 func _input(event: InputEvent) -> void:
 	#COMANDO TEMPORARIO PARA ATIVAR AS MECANICAS!!!!!!!!
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -162,6 +180,10 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_Y:
 			make_autorun()
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_P:
+			make_superjump()
+	
 	###################################################
 	if event is InputEventKey and event.pressed:
 		if event.echo:
