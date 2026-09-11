@@ -1,5 +1,7 @@
 extends "res://Scripts/entity.gd"
 
+@onready var camera: Camera2D = $Camera2D
+
 var SPEED = 130.0
 var JUMP_VEL = -300.0
 
@@ -65,6 +67,7 @@ var normal_deceleration = 8
 
 
 var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
+var current_gravity = gravity
 @onready var weapon1_scene = preload("res://Scenes/weapon_1.tscn")
 @onready var weapon2_scene = preload("res://Scenes/weapon_2.tscn")
 
@@ -152,7 +155,7 @@ func _input(event: InputEvent) -> void:
 		is_running = not is_running
 		print("Is Running?: ",is_running)
 		# Tiro estático ou em movimento
-	if GameManager.is_action_pressed("shoot"):
+	if GameManager.is_action_pressed("shoot") and not is_stealth_active:
 		shoot()
 
 	#if Input.is_action_just_pressed("down"):
@@ -234,6 +237,7 @@ func _physics_process(delta: float) -> void:
 		# Morte por Queda
 	if global_position.y > 1500:
 		die()
+	
 
 func update_autorun_speed() -> void:
 	if autorun_tween and autorun_tween.is_running():
@@ -246,12 +250,14 @@ func update_autorun_speed() -> void:
 func activate_stealth_mode(duration: float = randf_range(4.0,6.0))-> void:
 		is_stealth_active = true
 		set_stealth_state(true)
+		can_shoot = false
 		stealth_timer = get_tree().create_timer(duration)
 		await stealth_timer.timeout
 		set_stealth_state(false)
 		GameManager.is_invincible = false
 		is_stealth_active = false
-
+		can_shoot = true
+		
 func set_stealth_state(active: bool) -> void:
 	is_invincible = active
 	
@@ -325,12 +331,13 @@ func movement(direction: float, target_speed: float, delta: float) -> void:
 		is_skidding = false
 		velocity.x = direction * target_speed
 
-
 func apply_gravity_and_movement(direction: float,target_max_speed: float,delta:float) -> void:
 	movement(direction,target_max_speed,delta)
+	
+	var active_gravity: float = current_gravity if GameManager.is_gravity_changed else gravity
 	if GameManager.classic:
 		if not is_on_floor():
-			velocity.y += gravity * delta
+			velocity.y += active_gravity * delta
 			if jump_left == max_jumps and not has_jumped:
 				jump_left = max_jumps - 1
 			if not air_control_locked:
@@ -344,7 +351,7 @@ func apply_gravity_and_movement(direction: float,target_max_speed: float,delta:f
 				jump_left = max_jumps
 	else:
 		if not is_on_floor():
-			velocity.y += gravity * delta
+			velocity.y += active_gravity * delta
 			jump_forgiveness_counter -= delta
 			if jump_forgiveness_counter <= 0.0 and jump_left == max_jumps:
 				jump_left = max_jumps - 1
@@ -353,7 +360,10 @@ func apply_gravity_and_movement(direction: float,target_max_speed: float,delta:f
 			has_jumped = false
 			air_control_locked = false
 			jump_left = max_jumps
-		
+
+func set_random_gravity() -> void:
+	current_gravity = gravity * randf_range(0.40,1.80)
+	print("Nova gravidade: ",current_gravity)
 
 func swap_weapon() -> void:
 	if not can_swap:
@@ -361,9 +371,6 @@ func swap_weapon() -> void:
 	current_weapon = 2 if current_weapon == 1 else 1
 	can_swap = false
 	get_tree().create_timer(1.0).timeout.connect(func(): can_swap = true)
-
-	
-			
 
 func shoot() -> void:
 	if not can_shoot:
@@ -440,6 +447,8 @@ func jump() -> void:
 		return
 		
 	jump_sfx.play()
+	if GameManager.is_gravity_changed:
+		set_random_gravity()
 	var current_jump_mult: float = jump_mult 
 	if GameManager.is_superjumping:
 		current_jump_mult = 1.6
@@ -447,7 +456,7 @@ func jump() -> void:
 		current_jump_mult = 1.05
 		
 	velocity.y = JUMP_VEL * current_jump_mult
-	print("Current jump mult: ",current_jump_mult)
+	#print("Current jump mult: ",current_jump_mult)
 	
 	if GameManager.classic:
 		var jump_direction = Input.get_axis("move_left","move_right")
@@ -461,7 +470,7 @@ func jump() -> void:
 				air_direction = jump_direction
 		air_control_locked = true
 	jump_left -= 1
-	print("Jump left: ",jump_left)
+	#print("Jump left: ",jump_left)
 	has_jumped = true
 
 func drop_through_platform():
@@ -479,6 +488,7 @@ func die():
 	air_control_locked = false
 	current_bullets = 0
 	get_tree().reload_current_scene()
+	GameManager.trigger_modifier_selection()
 
 func take_damage(s: AnimatedSprite2D = player) -> void:
 	if is_player_invincible:

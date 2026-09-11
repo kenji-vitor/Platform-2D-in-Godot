@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c25m1dw4a658v"]
 
 [ext_resource type="PackedScene" uid="uid://5uvbk6v0q52k" path="res://Scenes/player.tscn" id="1_uruiy"]
+[ext_resource type="Script" uid="uid://bae5k7re7vog" path="res://Scripts/camera_2d.gd" id="2_1awyu"]
 [ext_resource type="AudioStream" uid="uid://m5as5rv78ly8" path="res://SFX/jump_sfx.wav" id="2_wteag"]
 [ext_resource type="PackedScene" uid="uid://dn4ddptukyrok" path="res://Scenes/heart.tscn" id="3_gcm4n"]
 
@@ -10,6 +11,9 @@ size = Vector2(9, 13)
 [node name="Player_HERDADO" unique_id=406442816 instance=ExtResource("1_uruiy")]
 visible = true
 collision_layer = 1
+
+[node name="Camera2D" parent="." index="2" unique_id=1074089931]
+script = ExtResource("2_1awyu")
 
 [node name="CollisionShape2D" parent="Area2D" parent_id_path=PackedInt32Array(1575999253) index="0" unique_id=93089322]
 position = Vector2(-0.5, 0.5)
