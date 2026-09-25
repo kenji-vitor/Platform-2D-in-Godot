@@ -21,8 +21,8 @@ mouse_filter = 2
 
 [node name="BtnOption1" type="Button" parent="Control" unique_id=194061900]
 layout_mode = 0
-offset_left = 257.0
-offset_top = 143.0
+offset_left = 255.0
+offset_top = 131.0
 offset_right = 924.0
 offset_bottom = 285.0
 text = "Opcao 1
@@ -33,7 +33,7 @@ layout_mode = 0
 offset_left = 256.0
 offset_top = 296.0
 offset_right = 928.0
-offset_bottom = 446.0
+offset_bottom = 453.0
 text = "Opcao 2
 "
 
@@ -71,8 +71,8 @@ vertical_alignment = 1
 
 [node name="LblFlowers" type="Label" parent="Control" unique_id=536065482]
 layout_mode = 0
-offset_left = 987.0
-offset_top = 604.0
-offset_right = 1047.0
-offset_bottom = 627.0
+offset_left = 960.0
+offset_top = 616.0
+offset_right = 1020.0
+offset_bottom = 639.0
 text = "Flowers"

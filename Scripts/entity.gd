@@ -32,6 +32,7 @@ func _invincible_frames_blinks(s: AnimatedSprite2D) -> void:
 		blink_tween.tween_property(s, "modulate:a", 1.0, 0.1)
 		blink_tween.tween_property(s, "modulate:a", 0.25, 0.1)
 	blink_tween.tween_property(s, "modulate:a", 1.0, 0.0)
+	
 func take_damage(s: AnimatedSprite2D) -> void:
 	if is_damaged:
 		return #Prevents multi hit damage

@@ -1,7 +1,12 @@
 extends "res://Scripts/entity.gd"
 
 @onready var camera: Camera2D = $Camera2D
-
+@onready var current_zoom: Vector2 = camera.zoom
+var is_zoom_up = true
+#Heart
+signal health_changed(current_health,max_health)
+@export var max_health: int = 3
+const DEFAULT_MAX_HEALTH: int = 3
 var SPEED = 130.0
 var JUMP_VEL = -300.0
 
@@ -15,8 +20,6 @@ var is_knockback = false
 
 @onready var shoot_point = $ShootPoint
 var current_weapon = 2
-
-var hearts_list : Array[TextureRect]
 
 
 @export var max_jumps: int = 2
@@ -77,7 +80,7 @@ var spawn_position: Vector2
 const weapon1_limit = 20
 const weapon1_cooldown = 0.4
 
-const weapon2_limit = 15
+const weapon2_limit = 100
 const weapon2_cooldown = 0.8
 
 var can_swap = true
@@ -117,19 +120,7 @@ func _ready() -> void:
 	skid_delay_timer.one_shot = true
 	skid_delay_timer.timeout.connect(_on_skid_delay_timeout)
 	add_child(skid_delay_timer)
-	
-	
-	
-	var hearts_parent = $health_bar/HBoxContainer
-	hearts_list.clear()
-	for child in hearts_parent.get_children():
-		if child is TextureRect:
-			hearts_list.append(child)
-	health = hearts_list.size()
-	
-	print("Corações carregados: ", hearts_list.size())
-	print("Vida inicializada em: ", health)
-		
+
 	spawn_position = global_position
 	jump_left = max_jumps
 
@@ -155,8 +146,8 @@ func _input(event: InputEvent) -> void:
 		is_running = not is_running
 		print("Is Running?: ",is_running)
 		# Tiro estático ou em movimento
-	if GameManager.is_action_pressed("shoot") and not is_stealth_active:
-		shoot()
+	#if GameManager.is_action_pressed("shoot") and not is_stealth_active:
+		#shoot()
 
 	#if Input.is_action_just_pressed("down"):
 	#	await get_tree().create_timer(0.3)
@@ -165,9 +156,12 @@ func _input(event: InputEvent) -> void:
 	#	set_collision_mask_value(10,true)
 
 func _physics_process(delta: float) -> void:
+	if GameManager.is_action_pressed("shoot") and not is_stealth_active:
+		shoot()
 	var base_speed: float = SPEED
 	if GameManager.is_s_speed:
 		base_speed = SPEED * 3
+		apply_camera_zoom(Vector2(3.0,3.0))
 	elif is_running:
 		base_speed = SPEED + 80.0
 	if is_knockback:
@@ -238,6 +232,15 @@ func _physics_process(delta: float) -> void:
 	if global_position.y > 1500:
 		die()
 	
+func reset_camera(duration: float = 0.5) -> void:
+	if camera:
+		var tween = create_tween()
+		tween.tween_property(camera,"zoom",Vector2(1.5,1.5),duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+func apply_camera_zoom(target_zoom: Vector2, duration: float = 0.5) -> void:
+	if camera:
+		var tween = create_tween()
+		tween.tween_property(camera,"zoom",target_zoom,duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func update_autorun_speed() -> void:
 	if autorun_tween and autorun_tween.is_running():
@@ -378,10 +381,8 @@ func shoot() -> void:
 	match current_weapon:
 		1: 
 			shoot_weapon1()
-			play_weapon_sfx()
 		2: 
 			shoot_weapon2()
-			play_weapon_sfx()
 
 func play_weapon_sfx():
 	if sfx_weapon_variations.size() > 0:
@@ -394,20 +395,48 @@ func shoot_weapon1() -> void:
 	if current_bullets >= weapon1_limit:
 		return
 	can_shoot = false
-	get_tree().create_timer(weapon1_cooldown).timeout.connect(func(): can_shoot = true)
+	get_tree().create_timer(weapon1_cooldown).timeout.connect(
+		func(): can_shoot = true,
+		CONNECT_ONE_SHOT
+	)
+	play_weapon_sfx()
 	_shoot_bullet(weapon1_scene)
 
 func shoot_weapon2() -> void:
-	max_bullet = weapon2_scene.instantiate()
 	if current_bullets >= weapon2_limit:
 		return
 	can_shoot = false
-	get_tree().create_timer(weapon2_cooldown).timeout.connect(func(): can_shoot = true)
+	# 1. Calcula o cooldown base considerando o modificador sem alterar a variável original
+	var effective_cooldown: float = weapon2_cooldown
+	var burst_interval: float = 0.15
+	if GameManager.is_glass_cannon:
+		print("Glass cannon ativo no w2")
+		effective_cooldown = maxf(0.05,weapon2_cooldown - 0.3)
+		burst_interval = 0.08
+
+	
+	# 2. Duração total da animação de rajada de 3 tiros (2 intervalos de 0.15s)
+	var burst_duration: float = 2 * burst_interval
+	
+	# 3. O tempo total de reuso é o tempo de rajada + o cooldown calculado
+	get_tree().create_timer(effective_cooldown + burst_duration).timeout.connect(
+		func(): can_shoot = true,
+		CONNECT_ONE_SHOT
+	)
+	play_weapon_sfx()
+	
+	# 4. Disparo da rajada
 	for i in range(3):
+		if not is_inside_tree():
+			return
 		_shoot_bullet(weapon2_scene)
-		await get_tree().create_timer(0.15).timeout
+		if i < 2:
+			await get_tree().create_timer(burst_interval).timeout
+			print(burst_interval)
 
 func _shoot_bullet(scene: PackedScene) -> void:
+	if scene == null:
+		return
 	var bullet = scene.instantiate()
 	get_parent().add_child(bullet)
 	if player.flip_h:
@@ -419,11 +448,15 @@ func _shoot_bullet(scene: PackedScene) -> void:
 	bullet.target = self
 	bullet.add_collision_exception_with(self)
 	for existing_bullet in get_tree().get_nodes_in_group("bullet"):
-		bullet.add_collision_exception_with(existing_bullet)
-		existing_bullet.add_collision_exception_with(bullet)
+		if is_instance_valid(existing_bullet):
+			bullet.add_collision_exception_with(existing_bullet)
+			existing_bullet.add_collision_exception_with(bullet)
 	bullet.add_to_group("bullet")
 	current_bullets += 1
-	bullet.tree_exited.connect(func(): current_bullets -= 1)
+	bullet.tree_exited.connect(func(): 
+		current_bullets = max(0,current_bullets - 1),
+		CONNECT_ONE_SHOT
+	)
 
 	
 func apply_knockback(from_position: Vector2):
@@ -478,16 +511,45 @@ func drop_through_platform():
 	await get_tree().create_timer(0.3).timeout
 	set_collision_mask_value(10,true)
 
-func die():
-	global_position = spawn_position
+
+func respawn() -> void:
+	health = max_health
+	#var heart_ui = get_tree().get_first_node_in_group("heart_ui")
+	health_changed.emit(health,max_health)
 	velocity = Vector2.ZERO
+	global_position = spawn_position
+	if player:
+		player.show()
+		player.modulate = Color.WHITE
+	is_invincible = false
+	is_player_invincible = false
+	is_damaged = false
 	
+	$Area2D.monitoring = true
+	if invincibility_timer:
+		invincibility_timer.stop()
+		
+	print("Player respawnou!")
+
+func die():
+	GameManager.reset_modifiers()
+	max_health = DEFAULT_MAX_HEALTH
+	health = max_health
+	health_changed.emit(health,max_health)
+	reset_camera()
+	respawn()
+	if player:
+		player.flip_h = false
+		player.play("Idle")
 	jump_left = max_jumps
 	has_jumped = false
 	fell_off_platform = false
 	air_control_locked = false
+	can_shoot = true
 	current_bullets = 0
-	get_tree().reload_current_scene()
+	health = max_health
+	health_changed.emit(health,max_health)
+	
 	GameManager.trigger_modifier_selection()
 
 func take_damage(s: AnimatedSprite2D = player) -> void:
@@ -496,18 +558,29 @@ func take_damage(s: AnimatedSprite2D = player) -> void:
 	if s == null:
 		s = player
 	super.take_damage(s)
-	update_heart_display()
+	health_changed.emit(health,max_health)
 	is_invincible = true
 	$Area2D.monitoring = false
 	_invincible_frames_blinks(s)
 	invincibility_timer.start()
-	if health <= 0:
+	if health <= 0 :
 		die()
 
-func update_heart_display():
-	for i in range(hearts_list.size()):
-		hearts_list[i].visible = i < health
+func add_max_health(amount: int, fill_heart: bool) -> void:
+	max_health += amount
+	if fill_heart:
+		health += amount
+	health = min(health,max_health)
+	health_changed.emit(health,max_health)
+
+func remove_max_health(amount: int, reduce_current_health: bool = true) -> void:
+	max_health = max(1, max_health - amount)
+	if reduce_current_health:
+		health = max(1, health - amount)
+	else:
+		health = min(health, max_health)
 		
+	health_changed.emit(health, max_health)
 
 
 func _on_area_2d_area_exited(area: Area2D) -> void:

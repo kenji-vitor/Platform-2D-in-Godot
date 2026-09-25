@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://c2do5v3hslfyw"]
+
+[ext_resource type="Script" uid="uid://csyw21sfha4ww" path="res://Scripts/heart_ui.gd" id="1_q02kt"]
+[ext_resource type="Texture2D" uid="uid://dvtoryanql20m" path="res://Images/BasicPlatformerAssetPack/Platformer/UI/FullHeartUI.png" id="2_3en2k"]
+[ext_resource type="Texture2D" uid="uid://cw2ffwm20b6e" path="res://Images/BasicPlatformerAssetPack/Platformer/UI/EmptyHeartUI.png" id="3_7gtln"]
+
+[node name="HeartUI" type="CanvasLayer" unique_id=1355379262 groups=["heart_ui"]]
+script = ExtResource("1_q02kt")
+heart_full = ExtResource("2_3en2k")
+heart_empty = ExtResource("3_7gtln")
+
+[node name="HealthBoxContainer" type="HBoxContainer" parent="." unique_id=564143876]
+custom_minimum_size = Vector2(-15, 0)
+offset_right = 218.0
+offset_bottom = 64.0
+
+[node name="TextureRect" type="TextureRect" parent="HealthBoxContainer" unique_id=1725836699]
+texture_filter = 1
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("2_3en2k")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="TextureRect2" type="TextureRect" parent="HealthBoxContainer" unique_id=189782042]
+texture_filter = 1
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("2_3en2k")
+expand_mode = 3
+stretch_mode = 5
+
+[node name="TextureRect3" type="TextureRect" parent="HealthBoxContainer" unique_id=1992869232]
+texture_filter = 1
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("2_3en2k")
+expand_mode = 3
+stretch_mode = 5

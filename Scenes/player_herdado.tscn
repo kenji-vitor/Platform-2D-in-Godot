@@ -3,7 +3,6 @@
 [ext_resource type="PackedScene" uid="uid://5uvbk6v0q52k" path="res://Scenes/player.tscn" id="1_uruiy"]
 [ext_resource type="Script" uid="uid://bae5k7re7vog" path="res://Scripts/camera_2d.gd" id="2_1awyu"]
 [ext_resource type="AudioStream" uid="uid://m5as5rv78ly8" path="res://SFX/jump_sfx.wav" id="2_wteag"]
-[ext_resource type="PackedScene" uid="uid://dn4ddptukyrok" path="res://Scenes/heart.tscn" id="3_gcm4n"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_uruiy"]
 size = Vector2(9, 13)
@@ -13,6 +12,7 @@ visible = true
 collision_layer = 1
 
 [node name="Camera2D" parent="." index="2" unique_id=1074089931]
+process_mode = 3
 script = ExtResource("2_1awyu")
 
 [node name="CollisionShape2D" parent="Area2D" parent_id_path=PackedInt32Array(1575999253) index="0" unique_id=93089322]
@@ -33,39 +33,6 @@ stream = ExtResource("2_wteag")
 volume_db = -24.163
 
 [node name="weapon_sfx" type="AudioStreamPlayer2D" parent="." index="9" unique_id=1563408562]
-
-[node name="health_bar" type="CanvasLayer" parent="." index="10" unique_id=287965147]
-
-[node name="HBoxContainer" type="HBoxContainer" parent="health_bar" index="0" unique_id=1607484224]
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="heart" type="TextureRect" parent="health_bar/HBoxContainer" index="0" unique_id=1922513]
-custom_minimum_size = Vector2(22, 10)
-layout_mode = 2
-
-[node name="Heart" parent="health_bar/HBoxContainer/heart" index="0" unique_id=2135385110 instance=ExtResource("3_gcm4n")]
-position = Vector2(-30.000015, -31.000004)
-scale = Vector2(1.875, 1.875)
-animation = &"full heart"
-
-[node name="heart2" type="TextureRect" parent="health_bar/HBoxContainer" index="1" unique_id=1251377259]
-custom_minimum_size = Vector2(22, 10)
-layout_mode = 2
-
-[node name="Heart" parent="health_bar/HBoxContainer/heart2" index="0" unique_id=750281276 instance=ExtResource("3_gcm4n")]
-position = Vector2(-30.000015, -31.000004)
-scale = Vector2(1.875, 1.875)
-animation = &"full heart"
-
-[node name="heart3" type="TextureRect" parent="health_bar/HBoxContainer" index="2" unique_id=603234858]
-custom_minimum_size = Vector2(22, 10)
-layout_mode = 2
-
-[node name="Heart" parent="health_bar/HBoxContainer/heart3" index="0" unique_id=1839956716 instance=ExtResource("3_gcm4n")]
-position = Vector2(-30.000015, -31.000004)
-scale = Vector2(1.875, 1.875)
-animation = &"full heart"
 
 [connection signal="timeout" from="KnockbackTimer" to="." method="_on_knockback_timer_timeout"]
 [connection signal="timeout" from="InvincibilityTimer" to="." method="_on_invincibility_timer_timeout"]
