@@ -621,16 +621,14 @@ func die():
 	
 	GameManager.trigger_modifier_selection()
 
-func take_damage(s: AnimatedSprite2D = player) -> void:
+func take_damage(amount: int = 1) -> void:
 	if is_player_invincible:
 		return
-	if s == null:
-		s = player
-	super.take_damage(s)
+	super.take_damage(amount)
 	health_changed.emit(health,max_health)
 	is_invincible = true
 	$Area2D.monitoring = false
-	_invincible_frames_blinks(s)
+	_invincible_frames_blinks(player)
 	invincibility_timer.start()
 	if health <= 0 :
 		die()

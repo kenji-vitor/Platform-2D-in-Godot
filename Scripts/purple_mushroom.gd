@@ -270,23 +270,20 @@ func _get_safe_jump_direction() -> int:
 		return 0
 
 # Chama o comportamento visual herdado da classe base ("entity.gd") para piscar o sprite em vermelho ao tomar dano
-func _turn_red(s: AnimatedSprite2D) -> void:
-	super._turn_red(s)
 
+func _on_area_entered(area: Area2D) -> void:
+	if area.is_in_group("slash"):
+		print("Slash entrou")
+		take_damage(2)
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("bullet"):
+		print("bullet entrou")
 		body.queue_free() 
-		take_damage()  
+		take_damage(1)  
 
-# Gerencia a redução de vida e efeitos de dano
-func take_damage(s: AnimatedSprite2D = purple_mushroom) -> void:
-	health -= 1
-	if health <= 0:
-		queue_free() # Se a vida chegar a zero, mata o inimigo deletando-o da árvore de nós do jogo
-		return
-	is_damaged = true
-	_turn_red(s) # Pisca o sprite em vermelho
+func _on_death() -> void:
+	queue_free()
 
 # Altera a variável de direção de movimentação e protege o inimigo de cometer "suicídio" andando em buracos visíveis
 func _flip_direction(new_dir: int) -> void:

@@ -47,7 +47,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("bullet"):
 		body.queue_free()
 		take_damage()
-
+'''
 func take_damage(s: AnimatedSprite2D = mosquito) -> void:
 	health -= 1
 	if health <= 0:
@@ -61,5 +61,6 @@ func take_damage(s: AnimatedSprite2D = mosquito) -> void:
 	is_damaged = true
 	_turn_red(s)
 	
-func _turn_red(s: AnimatedSprite2D) -> void:
-	super._turn_red(s)
+#func _turn_red(s: AnimatedSprite2D) -> void:
+	#super._turn_red(s)
+'''
