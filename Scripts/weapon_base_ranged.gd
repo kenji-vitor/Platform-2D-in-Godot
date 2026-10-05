@@ -1,4 +1,6 @@
 extends CharacterBody2D
+#RANGED WEAPONS BASE
+
 
 @export var speed = 600
 var direction = 2
@@ -17,14 +19,9 @@ func _ready() -> void:
 	start_x = global_position.x
 
 func _physics_process(delta: float) -> void:
-	
 	var collision = move_and_collide(Vector2(speed*direction,0) * delta)
 	if collision:
 		queue_free()
-	#if target != null:
-		#var diff = target.global_position.y - global_position.y
-		#velocity.y = diff * 1.0
-	
 	sprite.rotation += rotation_speed * direction * delta
 	if global_position.x > x_max_limit or global_position.x < -x_max_limit:#or global_position.x < x_min_limit:
 		queue_free()

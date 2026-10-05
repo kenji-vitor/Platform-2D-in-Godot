@@ -1,4 +1,4 @@
-extends "res://Scripts/weapon_base.gd"
+extends "res://Scripts/weapon_base_ranged.gd"
 #Throws 3 bullets one after one after one
 
 

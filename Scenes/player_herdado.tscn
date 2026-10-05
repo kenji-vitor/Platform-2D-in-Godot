@@ -12,7 +12,6 @@ visible = true
 collision_layer = 1
 
 [node name="Camera2D" parent="." index="2" unique_id=1074089931]
-process_mode = 3
 script = ExtResource("2_1awyu")
 
 [node name="CollisionShape2D" parent="Area2D" parent_id_path=PackedInt32Array(1575999253) index="0" unique_id=93089322]

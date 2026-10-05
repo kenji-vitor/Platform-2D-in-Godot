@@ -20,12 +20,12 @@ func _connect_to_player() -> void:
 	if player:
 		if not player.health_changed.is_connected(update_health):
 			player.health_changed.connect(update_health)
-		print("HeartUI conectada com sucesso ao Player!")
+		#print("HeartUI conectada com sucesso ao Player!")
 		update_health(player.health, player.max_health)
 	
 
 func update_health(current_health: int, max_health: int) -> void:
-	print("UI recebeu -> Vida Atual: ", current_health, " | Vida Maxima: ", max_health)
+	#print("UI recebeu -> Vida Atual: ", current_health, " | Vida Maxima: ", max_health)
 	if health_container == null:
 		return
 	for child in health_container.get_children():

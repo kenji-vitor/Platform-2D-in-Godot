@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://bc351ge1smm4f"]
+
+[ext_resource type="Script" uid="uid://dk02xlu0axlar" path="res://Scripts/weapon_base_ranged.gd" id="1_lfnsy"]
+
+[node name="WeaponBaseRanged" type="Node2D" unique_id=1939697270 groups=["bullet"]]
+script = ExtResource("1_lfnsy")
+speed = 750

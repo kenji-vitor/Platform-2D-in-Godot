@@ -273,13 +273,12 @@ func _get_safe_jump_direction() -> int:
 func _turn_red(s: AnimatedSprite2D) -> void:
 	super._turn_red(s)
 
-# Resposta física disparada quando alguma área penetra a Hitbox
+
 func _on_body_entered(body: Node2D) -> void:
-	# Se o objeto que colidiu pertencer ao grupo das balas do jogador
 	if body.is_in_group("bullet"):
-		body.queue_free() # Deleta o projétil da tela
-		take_damage()     # Executa a perda de vida do inimigo
-		
+		body.queue_free() 
+		take_damage()  
+
 # Gerencia a redução de vida e efeitos de dano
 func take_damage(s: AnimatedSprite2D = purple_mushroom) -> void:
 	health -= 1

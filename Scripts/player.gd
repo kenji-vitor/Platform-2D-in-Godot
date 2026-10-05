@@ -2,7 +2,6 @@ extends "res://Scripts/entity.gd"
 
 @onready var camera: Camera2D = $Camera2D
 @onready var current_zoom: Vector2 = camera.zoom
-var is_zoom_up = true
 #Heart
 signal health_changed(current_health,max_health)
 @export var max_health: int = 3
@@ -15,15 +14,17 @@ var jump_mult: float = 1.0
 
 @onready var player: AnimatedSprite2D = $AnimatedSprite2D
 
+var offset_x: float = 0.0
+
 var knockback_force = Vector2(100,-250)
 var is_knockback = false
 
-@onready var shoot_point = $ShootPoint
-var current_weapon = 2
+@onready var attack_point = $ShootPoint
+var current_weapon = 3
 
-
-@export var max_jumps: int = 2
-var jump_left : int = 2
+const DEFAULT_MAX_JUMPS = 2
+@export var max_jumps: int = DEFAULT_MAX_JUMPS
+var jump_left : int = DEFAULT_MAX_JUMPS
 
 var has_jumped = false
 var was_on_floor = false
@@ -73,6 +74,8 @@ var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 var current_gravity = gravity
 @onready var weapon1_scene = preload("res://Scenes/weapon_1.tscn")
 @onready var weapon2_scene = preload("res://Scenes/weapon_2.tscn")
+@onready var weapon3_scene: PackedScene = preload("res://Scenes/weapon_3.tscn")
+
 
 @onready var hitbox = $Area2D
 var spawn_position: Vector2
@@ -82,6 +85,8 @@ const weapon1_cooldown = 0.4
 
 const weapon2_limit = 100
 const weapon2_cooldown = 0.8
+
+const weapon3_cooldown = 0.2
 
 var can_swap = true
 
@@ -136,15 +141,14 @@ func _input(event: InputEvent) -> void:
 			if jump_left > 0 or jump_forgiveness_counter > 0.0:
 				if not is_on_floor() and jump_forgiveness_counter > 0.0 and jump_left == max_jumps:
 					jump_forgiveness_counter = 0.0
-					print("Salvo pelo Coyote Time")
+				
 				jump()
 
 	if Input.is_action_just_pressed("swap_weapon"):
 		swap_weapon()
 
-	if GameManager.is_action_just_pressed("run"):
+	if GameManager.is_action_just_pressed("run") and not GameManager.is_tank:
 		is_running = not is_running
-		print("Is Running?: ",is_running)
 		# Tiro estático ou em movimento
 	#if GameManager.is_action_pressed("shoot") and not is_stealth_active:
 		#shoot()
@@ -156,18 +160,22 @@ func _input(event: InputEvent) -> void:
 	#	set_collision_mask_value(10,true)
 
 func _physics_process(delta: float) -> void:
+	var direction = Input.get_axis("move_left","move_right")
+	var target_max_speed = (SPEED + 80.0) if is_running else SPEED
 	if GameManager.is_action_pressed("shoot") and not is_stealth_active:
-		shoot()
+		active_weapon()
 	var base_speed: float = SPEED
 	if GameManager.is_s_speed:
+		print("S speed aplicado")
 		base_speed = SPEED * 3
-		apply_camera_zoom(Vector2(3.0,3.0))
+		print("Velocidade com s_speed: ",base_speed)
+		apply_camera_zoom(Vector2(2.0,2.0))
 	elif is_running:
 		base_speed = SPEED + 80.0
 	if is_knockback:
 		var is_grounded_after_hit = is_on_floor() and velocity.x >= 0.0
 		if not is_grounded_after_hit:
-			velocity.y += gravity * delta
+			velocity.y += current_gravity * delta
 		else:
 			velocity.x = move_toward(velocity.x,0.0,FRICTION * delta)
 			if was_on_floor_hit and not knockback_timer_shortened:
@@ -176,9 +184,7 @@ func _physics_process(delta: float) -> void:
 				knockback_timer_shortened = true
 		move_and_slide()
 		return
-	var direction = Input.get_axis("move_left","move_right")
-	#var target_max_speed = (SPEED + 80.0) if is_running else SPEED
-	var target_max_speed = (SPEED + 80.0) if is_running else SPEED
+
 	if GameManager.is_drunk:
 		direction = Input.get_axis("move_right","move_left")
 		if direction != 0:
@@ -186,25 +192,16 @@ func _physics_process(delta: float) -> void:
 		else:
 			GameManager.drunk_direction = 0.0
 		direction = GameManager.drunk_direction
-
-	if GameManager.is_s_speed:
-		target_max_speed = (SPEED * 3)
 	if GameManager.is_invincible and not is_stealth_active:
 		activate_stealth_mode()
-	#
-	'''
-	if GameManager.is_autorunning:
-		is_running = true
-		if direction == 0.0:
-			direction = 1.0 if player.flip_h == false else -1.0
-		if autorun_tween == null or not autorun_tween.is_running():
-			update_autorun_speed()
-		target_max_speed = SPEED * autorun_speed_modifier
-	else:
-		if autorun_tween and autorun_tween.is_running():
-			autorun_tween.kill()
-		autorun_speed_modifier = 1.0
-	'''
+	if GameManager.is_tank:
+		target_max_speed /= 2
+	if GameManager.is_small:
+		update_player_scale()
+		target_max_speed /= 1.5
+		
+	if GameManager.is_big:
+		update_player_scale()
 	if GameManager.is_autorunning:
 		is_running = true
 		if direction == 0.0:
@@ -231,9 +228,18 @@ func _physics_process(delta: float) -> void:
 		# Morte por Queda
 	if global_position.y > 1500:
 		die()
+
+func update_player_scale() -> void:
+	if GameManager.is_small:
+		scale = Vector2(0.5,0.5)
+	elif GameManager.is_big:
+		scale = Vector2(1.5,1.5)
+	else:
+		scale = Vector2(1.0,1.0)
 	
 func reset_camera(duration: float = 0.5) -> void:
 	if camera:
+		camera.drag_horizontal_offset = 0.2
 		var tween = create_tween()
 		tween.tween_property(camera,"zoom",Vector2(1.5,1.5),duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
@@ -245,7 +251,7 @@ func apply_camera_zoom(target_zoom: Vector2, duration: float = 0.5) -> void:
 func update_autorun_speed() -> void:
 	if autorun_tween and autorun_tween.is_running():
 		autorun_tween.kill()
-	var target_mult = randf_range(0.5,1.8)
+	var target_mult = 1.8
 	autorun_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	autorun_tween.tween_property(self,"autorun_speed_modifier",target_mult,AUTORUN_CHANGE_INTERVAL)
 	
@@ -336,8 +342,13 @@ func movement(direction: float, target_speed: float, delta: float) -> void:
 
 func apply_gravity_and_movement(direction: float,target_max_speed: float,delta:float) -> void:
 	movement(direction,target_max_speed,delta)
-	
-	var active_gravity: float = current_gravity if GameManager.is_gravity_changed else gravity
+	#current_gravity = current_gravity if not GameManager.is_gravity_changed else 
+	var active_gravity: float = gravity
+	if GameManager.is_gravity_changed:
+		active_gravity = gravity * GameManager.gravity_factor
+		#print("Nova gravidade: ",active_gravity)
+	#else:
+		#print("Gravidade sem o modificador: ",active_gravity)
 	if GameManager.classic:
 		if not is_on_floor():
 			velocity.y += active_gravity * delta
@@ -363,19 +374,19 @@ func apply_gravity_and_movement(direction: float,target_max_speed: float,delta:f
 			has_jumped = false
 			air_control_locked = false
 			jump_left = max_jumps
-
+'''
 func set_random_gravity() -> void:
 	current_gravity = gravity * randf_range(0.40,1.80)
 	print("Nova gravidade: ",current_gravity)
-
+'''
 func swap_weapon() -> void:
 	if not can_swap:
 		return
-	current_weapon = 2 if current_weapon == 1 else 1
+	current_weapon = 1# if current_weapon == 1 else 1
 	can_swap = false
 	get_tree().create_timer(1.0).timeout.connect(func(): can_swap = true)
 
-func shoot() -> void:
+func active_weapon() -> void:
 	if not can_shoot:
 		return
 	match current_weapon:
@@ -383,7 +394,8 @@ func shoot() -> void:
 			shoot_weapon1()
 		2: 
 			shoot_weapon2()
-
+		3:
+			attack_weapon3()
 func play_weapon_sfx():
 	if sfx_weapon_variations.size() > 0:
 		var random_sound = sfx_weapon_variations.pick_random()
@@ -391,7 +403,6 @@ func play_weapon_sfx():
 		weapon_sfx.play() 
 
 func shoot_weapon1() -> void:
-	max_bullet = weapon1_scene.instantiate()
 	if current_bullets >= weapon1_limit:
 		return
 	can_shoot = false
@@ -410,7 +421,6 @@ func shoot_weapon2() -> void:
 	var effective_cooldown: float = weapon2_cooldown
 	var burst_interval: float = 0.15
 	if GameManager.is_glass_cannon:
-		print("Glass cannon ativo no w2")
 		effective_cooldown = maxf(0.05,weapon2_cooldown - 0.3)
 		burst_interval = 0.08
 
@@ -424,7 +434,6 @@ func shoot_weapon2() -> void:
 		CONNECT_ONE_SHOT
 	)
 	play_weapon_sfx()
-	
 	# 4. Disparo da rajada
 	for i in range(3):
 		if not is_inside_tree():
@@ -432,7 +441,8 @@ func shoot_weapon2() -> void:
 		_shoot_bullet(weapon2_scene)
 		if i < 2:
 			await get_tree().create_timer(burst_interval).timeout
-			print(burst_interval)
+
+
 
 func _shoot_bullet(scene: PackedScene) -> void:
 	if scene == null:
@@ -440,10 +450,10 @@ func _shoot_bullet(scene: PackedScene) -> void:
 	var bullet = scene.instantiate()
 	get_parent().add_child(bullet)
 	if player.flip_h:
-		bullet.global_position = shoot_point.global_position + Vector2(-10,0)
+		bullet.global_position = attack_point.global_position + Vector2(-10,0)
 		bullet.direction = -1
 	else:
-		bullet.global_position = shoot_point.global_position + Vector2(10,0)
+		bullet.global_position = attack_point.global_position + Vector2(10,0)
 		bullet.direction = 1
 	bullet.target = self
 	bullet.add_collision_exception_with(self)
@@ -458,12 +468,62 @@ func _shoot_bullet(scene: PackedScene) -> void:
 		CONNECT_ONE_SHOT
 	)
 
+func attack_weapon3() -> void:
+	can_shoot = false
+	if weapon3_scene == null:
+		return
+	var weapon = weapon3_scene.instantiate() as MeleeWeaponBase
+	get_parent().add_child(weapon)
+	
+	
+	get_tree().create_timer(weapon1_cooldown).timeout.connect(
+		func(): can_shoot = true,
+		CONNECT_ONE_SHOT
+	)
+	play_weapon_sfx()
+	_attack_melee(weapon3_scene)
+
+func _attack_melee(scene: PackedScene) -> void:
+	if scene == null:
+		return
+		
+	var slash = scene.instantiate()
+	get_parent().add_child(slash)
+	
+	var dir: int = 1
+	var base_offset: float = 40.0 if (is_running or abs(velocity.x) > 10.0) else 18.0
+	
+	if player.flip_h:
+		dir = -1
+		offset_x = -base_offset
+		slash.scale.x = -1.0
+		
+	else:
+		dir = 1
+		offset_x = base_offset
+		slash.scale.x = 1.0
+		
+	slash.global_position = attack_point.global_position + Vector2(offset_x, -10.0)
+	
+	# Passa as variáveis para a arma corpo a corpo de forma segura
+	if "direction" in slash:
+		slash.direction = dir
+		
+	if "attacker" in slash:
+		slash.attacker = self
+	if "target" in slash:
+		slash.target = self
+		
+	# Caso alguma arma melee precise da variável target no futuro:
+	if "target" in slash:
+		slash.target = self
+
+
 	
 func apply_knockback(from_position: Vector2):
 	var direction = sign(global_position.x - from_position.x)
 	if direction == 0:
 		direction = 1.0
-	
 	velocity.x = direction * knockback_force.x
 	velocity.y = knockback_force.y
 	is_knockback = true
@@ -478,13 +538,16 @@ func apply_knockback(from_position: Vector2):
 func jump() -> void:
 	if jump_left <= 0:
 		return
-		
+	if GameManager.is_small:
+		max_jumps = 1
+	else:
+		max_jumps = DEFAULT_MAX_JUMPS
 	jump_sfx.play()
-	if GameManager.is_gravity_changed:
-		set_random_gravity()
 	var current_jump_mult: float = jump_mult 
-	if GameManager.is_superjumping:
+	if GameManager.is_superjumping or GameManager.is_small:
 		current_jump_mult = 1.6
+	elif GameManager.is_big:
+		current_jump_mult = 0.85
 	else:
 		current_jump_mult = 1.05
 		
@@ -505,6 +568,12 @@ func jump() -> void:
 	jump_left -= 1
 	#print("Jump left: ",jump_left)
 	has_jumped = true
+
+func apply_custom_gravity(new_gravity: float) -> void:
+	current_gravity = new_gravity
+
+func reset_gravity() -> void:
+	current_gravity = gravity
 
 func drop_through_platform():
 	set_collision_mask_value(10,false)
@@ -529,7 +598,7 @@ func respawn() -> void:
 	if invincibility_timer:
 		invincibility_timer.stop()
 		
-	print("Player respawnou!")
+
 
 func die():
 	GameManager.reset_modifiers()
@@ -579,9 +648,7 @@ func remove_max_health(amount: int, reduce_current_health: bool = true) -> void:
 		health = max(1, health - amount)
 	else:
 		health = min(health, max_health)
-		
 	health_changed.emit(health, max_health)
-
 
 func _on_area_2d_area_exited(area: Area2D) -> void:
 	pass # Replace with function body.

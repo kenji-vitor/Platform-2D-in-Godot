@@ -1,4 +1,4 @@
-extends "res://Scripts/weapon_base.gd"
+extends "res://Scripts/weapon_base_ranged.gd"
 
 func _ready() -> void:
 	start_x = global_position.x

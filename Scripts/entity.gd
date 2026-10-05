@@ -36,6 +36,7 @@ func _invincible_frames_blinks(s: AnimatedSprite2D) -> void:
 func take_damage(s: AnimatedSprite2D) -> void:
 	if is_damaged:
 		return #Prevents multi hit damage
+	
 	health -= 1
 	print("Health: ", health)
 	if health <= 0:

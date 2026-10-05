@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://d0jb311yndu2y"]
+
+[ext_resource type="PackedScene" uid="uid://c5c6u3u8aj3mv" path="res://Scenes/weapon_base_melee.tscn" id="1_13bpg"]
+
+[node name="WeaponBaseMelee" unique_id=1939697270 instance=ExtResource("1_13bpg")]
