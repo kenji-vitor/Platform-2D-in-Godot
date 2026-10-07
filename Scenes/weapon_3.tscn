@@ -1,56 +1,89 @@
 [gd_scene format=3 uid="uid://cp37vqeb10ucr"]
 
 [ext_resource type="Script" uid="uid://lcaq1wrb6m70" path="res://Scripts/weapon_3.gd" id="1_8l63i"]
-[ext_resource type="Texture2D" uid="uid://bfynu3j2hrn15" path="res://Images/craftpix-net-501088-free-slash-sprite-cartoon-effects/PNG/1/1.png" id="2_xk1yr"]
 [ext_resource type="Texture2D" uid="uid://r5yf8bb2l5ki" path="res://Images/craftpix-net-501088-free-slash-sprite-cartoon-effects/PNG/1/2.png" id="3_rwlyw"]
 [ext_resource type="Texture2D" uid="uid://7ipow6a0gn3q" path="res://Images/craftpix-net-501088-free-slash-sprite-cartoon-effects/PNG/1/3.png" id="4_euuks"]
+[ext_resource type="Texture2D" uid="uid://cjxjbf1db7jcy" path="res://Images/craftpix-net-501088-free-slash-sprite-cartoon-effects/PNG/1/4.png" id="5_apvlh"]
+[ext_resource type="Texture2D" uid="uid://tnu12r3811tg" path="res://Images/craftpix-net-501088-free-slash-sprite-cartoon-effects/PNG/1/5.png" id="6_l2c7t"]
+[ext_resource type="Texture2D" uid="uid://bi5xniq2uxkot" path="res://Images/craftpix-net-501088-free-slash-sprite-cartoon-effects/PNG/1/6.png" id="7_g2uqq"]
+[ext_resource type="Texture2D" uid="uid://6kwdkb6t7riw" path="res://Images/craftpix-net-501088-free-slash-sprite-cartoon-effects/PNG/1/7.png" id="8_4ypm8"]
+[ext_resource type="Texture2D" uid="uid://banuyt2sqb50f" path="res://Images/craftpix-net-501088-free-slash-sprite-cartoon-effects/PNG/1/8.png" id="9_tvuiu"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_nslk5"]
-size = Vector2(56, 42)
+size = Vector2(28, 50)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_k7wrg"]
-atlas = ExtResource("2_xk1yr")
-region = Rect2(392, 124, 49, 124)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_xw2db"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_mdymg"]
 atlas = ExtResource("3_rwlyw")
-region = Rect2(372, 165, 62, 165)
+region = Rect2(372, 165, 124, 165)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_5kjj1"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_efyh0"]
 atlas = ExtResource("4_euuks")
 region = Rect2(248, 0, 248, 496)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2esqm"]
+atlas = ExtResource("5_apvlh")
+region = Rect2(0, 0, 496, 496)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xyyvi"]
+atlas = ExtResource("6_l2c7t")
+region = Rect2(0, 0, 496, 496)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mopjh"]
+atlas = ExtResource("7_g2uqq")
+region = Rect2(0, 0, 496, 496)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uuug4"]
+atlas = ExtResource("8_4ypm8")
+region = Rect2(0, 0, 496, 496)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eueqk"]
+atlas = ExtResource("9_tvuiu")
+region = Rect2(0, 0, 496, 496)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_c7ck0"]
 animations = [{
 "frames": [{
-"duration": 0.3,
-"texture": SubResource("AtlasTexture_k7wrg")
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mdymg")
 }, {
-"duration": 0.3,
-"texture": SubResource("AtlasTexture_xw2db")
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_efyh0")
 }, {
-"duration": 0.3,
-"texture": SubResource("AtlasTexture_5kjj1")
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2esqm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xyyvi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mopjh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uuug4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eueqk")
 }],
 "loop": false,
-"name": &"attack",
-"speed": 5.0
+"name": &"normal_attack",
+"speed": 32.0
 }]
 
-[node name="Weapon3" type="Area2D" unique_id=1620489900]
+[node name="Weapon3" type="Area2D" unique_id=1620489900 groups=["slash"]]
 collision_layer = 8
 collision_mask = 770
 script = ExtResource("1_8l63i")
-knockback_force = 400.0
+attack_duration = 0.1
 damage = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1304370474]
-position = Vector2(2, 12)
+position = Vector2(-12, 7)
 shape = SubResource("RectangleShape2D_nslk5")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1362591709]
 texture_filter = 1
-position = Vector2(0, 1)
-scale = Vector2(0.5, 0.5)
+position = Vector2(-5, 12)
+rotation = 4.4017205
+scale = Vector2(0.2, 0.2)
 sprite_frames = SubResource("SpriteFrames_c7ck0")
-animation = &"attack"
+animation = &"normal_attack"

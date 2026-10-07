@@ -22,16 +22,18 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Weapon2" type="CharacterBody2D" unique_id=1305614990]
+[node name="Weapon2" type="CharacterBody2D" unique_id=1305614990 groups=["piercing_bullet"]]
 collision_layer = 4
 collision_mask = 768
 script = ExtResource("1_2wdv7")
+damage = 1
+weapon_cooldown = 0.6
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1304370474]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1304370474 groups=["piercing_bullet"]]
 position = Vector2(-1, 0)
 shape = SubResource("CapsuleShape2D_7nkh3")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1362591709]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1362591709 groups=["piercing_bullet"]]
 texture_filter = 1
 position = Vector2(-1, 0)
 scale = Vector2(0.5, 0.5)

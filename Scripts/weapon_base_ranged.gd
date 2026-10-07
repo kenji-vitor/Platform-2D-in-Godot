@@ -10,8 +10,13 @@ var target : Node2D
 @export var x_limit = 750.0
 @export var x_min_limit = -3000.0
 @export var x_max_limit = 3000.0
-@export var damage = 0
+
 var start_x : float
+
+@export var bullet_limit = 100
+
+@export var damage = 0
+@export var weapon_cooldown = 0.3
 
 @onready var sprite = $AnimatedSprite2D
 
@@ -27,4 +32,4 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 func _exit_tree() -> void:
-	remove_from_group("bullet")
+	remove_from_group("piercing_bullet")

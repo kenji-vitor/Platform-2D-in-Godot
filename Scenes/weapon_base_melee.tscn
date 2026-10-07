@@ -4,4 +4,4 @@
 
 [node name="WeaponBaseMelee" type="Node2D" unique_id=1939697270 groups=["slash"]]
 script = ExtResource("1_g5p8g")
-damage = 10
+attack_duration = 0.05

@@ -1670,10 +1670,10 @@ texture = ExtResource("12_h4a3m")
 centered = false
 
 [node name="PurpleMushroom6" parent="." unique_id=2052594322 instance=ExtResource("13_vmg04")]
-position = Vector2(-984, 349)
+position = Vector2(160, 343)
 
 [node name="Player_HERDADO2" parent="." unique_id=242470186 instance=ExtResource("13_65h6j")]
-position = Vector2(-1379, 360)
+position = Vector2(469, 340)
 max_jumps = 2
 
 [node name="SpawnTrigger" type="Node2D" parent="." unique_id=521869425]

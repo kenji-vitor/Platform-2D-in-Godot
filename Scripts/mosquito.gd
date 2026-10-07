@@ -4,7 +4,6 @@ extends "res://Scripts/entity.gd"
 @export var despawn_distance = 800.0
 @onready var mosquito: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox = $Area2D
-var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
 var SPEED = 160
 var is_dead = false
 
@@ -41,26 +40,29 @@ func _physics_process(delta: float) -> void:
 			mosquito.flip_h = false
 		elif velocity.x > 0:
 			mosquito.flip_h = true
-	
+
+func _on_death() -> void:
+	if is_dead:
+		return
+	is_dead = true
+	velocity = Vector2.ZERO
+	hitbox.monitoring = false
+	hitbox.monitorable = false
+	if has_node("CollisionShape2D"):
+		$CollisionShape2D.set_deferred("disabled",true)
+		
+	if hitbox.has_node("CollisionShape2D"):
+		hitbox.get_node("CollisionShape2D").set_deferred("disabled",true)
+	if mosquito.sprite_frames.has_animation("Die"):
+		mosquito.play("Die")
+		await mosquito.animation_finished
+	queue_free()
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("bullet"):
 		body.queue_free()
 		take_damage()
-'''
-func take_damage(s: AnimatedSprite2D = mosquito) -> void:
-	health -= 1
-	if health <= 0:
-		is_dead = true
-		hitbox.set_deferred("monitoring",false)
-		hitbox.set_deferred("monitorable",false)
-		mosquito.play("Die")
-		await get_tree().create_timer(0.4).timeout
-		queue_free()
-		return
-	is_damaged = true
-	_turn_red(s)
-	
-#func _turn_red(s: AnimatedSprite2D) -> void:
-	#super._turn_red(s)
-'''
+		
+func _on_area_entered(area: Area2D) -> void:
+	if area.is_in_group("slash"):
+		take_damage()

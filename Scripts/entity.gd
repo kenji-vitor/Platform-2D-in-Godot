@@ -5,9 +5,41 @@ class_name Entity
 @export var health: int = 3
 var is_damaged: bool = false
 var blink_tween: Tween
+var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
+var knockback_velocity : Vector2 = Vector2.ZERO
 
 # Busca automaticamente o AnimatedSprite2D filho caso nenhum seja passado
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
+
+func _physics_process(delta: float) -> void:
+	if knockback_velocity.length() > 10.0:
+		velocity.x = knockback_velocity.x
+		if knockback_velocity.y < 0:
+			velocity.y = knockback_velocity.y
+		knockback_velocity = knockback_velocity.lerp(Vector2.ZERO, 0.15)
+		move_and_slide()
+		return
+		
+
+
+func apply_knockback(force_vector: Vector2) -> void:
+	knockback_velocity = force_vector
+
+func handle_knockback(delta: float) -> bool:
+	if knockback_velocity.length() > 10.0:
+		velocity.x = knockback_velocity.x
+		
+		if knockback_velocity.y < 0:
+			velocity.y = knockback_velocity.y 
+			knockback_velocity.y = 0
+		if not is_on_floor():
+			velocity.y += gravity * delta
+		knockback_velocity = knockback_velocity.lerp(Vector2.ZERO,0.15)
+		move_and_slide()
+		return true
+	return false
+		
+		
 
 func _turn_red(s: AnimatedSprite2D = null) -> void:
 	# Se 's' não for passado, usa o 'sprite' padrão do nó
@@ -17,6 +49,8 @@ func _turn_red(s: AnimatedSprite2D = null) -> void:
 		
 	target_sprite.modulate = Color(1, 0.3, 0.3, 1)
 	await get_tree().create_timer(0.1).timeout
+	if not is_instance_valid(target_sprite):
+		return
 	target_sprite.modulate = Color(1, 1, 1, 1)
 	await get_tree().create_timer(0.1).timeout
 	is_damaged = false
@@ -42,10 +76,9 @@ func take_damage(amount: int = 1) -> void:
 	if is_damaged:
 		return # Prevents multi hit damage
 	
-	health -= amount # Aplica o valor real do dano recebido
-	print(name, " Health: ", health)
-	
+	health -= amount # Aplica o valor do dano da arma 
 	if health <= 0:
+		_turn_red()
 		_on_death()
 		return
 		

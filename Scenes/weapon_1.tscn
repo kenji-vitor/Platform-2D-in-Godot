@@ -22,12 +22,14 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Weapon1" type="CharacterBody2D" unique_id=809533841]
+[node name="Weapon1" type="CharacterBody2D" unique_id=809533841 groups=["bullet"]]
 texture_filter = 1
 collision_layer = 4
 collision_mask = 768
 script = ExtResource("1_och2e")
 speed = 350
+damage = 1
+weapon_cooldown = 0.4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1415517982]
 position = Vector2(-1, 0)

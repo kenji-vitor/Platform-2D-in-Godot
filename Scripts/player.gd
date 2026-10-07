@@ -60,6 +60,7 @@ var is_player_invincible: bool :
 		return is_invincible or GameManager.is_invincible 
 #var is_invincible = false
 
+var is_dead = false
 
 
 #Difficulty
@@ -70,23 +71,22 @@ var classic_deceleration = 100
 var normal_deceleration = 8
 
 
-var gravity = ProjectSettings.get_setting("physics/2d/default_gravity")
+
 var current_gravity = gravity
 @onready var weapon1_scene = preload("res://Scenes/weapon_1.tscn")
 @onready var weapon2_scene = preload("res://Scenes/weapon_2.tscn")
-@onready var weapon3_scene: PackedScene = preload("res://Scenes/weapon_3.tscn")
+@onready var weapon3_scene = preload("res://Scenes/weapon_3.tscn")
 
 
 @onready var hitbox = $Area2D
 var spawn_position: Vector2
 
-const weapon1_limit = 20
-const weapon1_cooldown = 0.4
+#const weapon1_limit = 20
+#const weapon1_cooldown = 0.4
 
-const weapon2_limit = 100
-const weapon2_cooldown = 0.8
+#const weapon2_limit = 100
+#const weapon2_cooldown = 0.8
 
-const weapon3_cooldown = 0.2
 
 var can_swap = true
 
@@ -119,8 +119,9 @@ var sfx_weapon_variations: Array[AudioStream] = [
 	load("res://SFX/weapon_variation4.wav"),
 	load("res://SFX/weapon_variation5.wav"),
 ]
-
+var weapon_list: Array = []
 func _ready() -> void:
+	#weapon_list.append(weapon)
 	skid_delay_timer = Timer.new()
 	skid_delay_timer.one_shot = true
 	skid_delay_timer.timeout.connect(_on_skid_delay_timeout)
@@ -160,74 +161,75 @@ func _input(event: InputEvent) -> void:
 	#	set_collision_mask_value(10,true)
 
 func _physics_process(delta: float) -> void:
-	var direction = Input.get_axis("move_left","move_right")
-	var target_max_speed = (SPEED + 80.0) if is_running else SPEED
-	if GameManager.is_action_pressed("shoot") and not is_stealth_active:
-		active_weapon()
-	var base_speed: float = SPEED
-	if GameManager.is_s_speed:
-		print("S speed aplicado")
-		base_speed = SPEED * 3
-		print("Velocidade com s_speed: ",base_speed)
-		apply_camera_zoom(Vector2(2.0,2.0))
-	elif is_running:
-		base_speed = SPEED + 80.0
-	if is_knockback:
-		var is_grounded_after_hit = is_on_floor() and velocity.x >= 0.0
-		if not is_grounded_after_hit:
-			velocity.y += current_gravity * delta
+	if not is_dead:
+		var direction = Input.get_axis("move_left","move_right")
+		var target_max_speed = (SPEED + 80.0) if is_running else SPEED
+		if GameManager.is_action_pressed("shoot") and not is_stealth_active:
+			active_weapon()
+		var base_speed: float = SPEED
+		if GameManager.is_s_speed:
+			print("S speed aplicado")
+			base_speed = SPEED * 3
+			print("Velocidade com s_speed: ",base_speed)
+			apply_camera_zoom(Vector2(2.0,2.0))
+		elif is_running:
+			base_speed = SPEED + 80.0
+		if is_knockback:
+			var is_grounded_after_hit = is_on_floor() and velocity.x >= 0.0
+			if not is_grounded_after_hit:
+				velocity.y += current_gravity * delta
+			else:
+				velocity.x = move_toward(velocity.x,0.0,FRICTION * delta)
+				if was_on_floor_hit and not knockback_timer_shortened:
+					if knockback_timer.time_left > 1.0:
+						knockback_timer.start(1.0)
+					knockback_timer_shortened = true
+			move_and_slide()
+			return
+
+		if GameManager.is_drunk:
+			direction = Input.get_axis("move_right","move_left")
+			if direction != 0:
+				GameManager.drunk_direction = direction
+			else:
+				GameManager.drunk_direction = 0.0
+			direction = GameManager.drunk_direction
+		if GameManager.is_invincible and not is_stealth_active:
+			activate_stealth_mode()
+		if GameManager.is_tank:
+			target_max_speed /= 2
+		if GameManager.is_small:
+			update_player_scale()
+			target_max_speed /= 1.5
+			
+		if GameManager.is_big:
+			update_player_scale()
+		if GameManager.is_autorunning:
+			is_running = true
+			if direction == 0.0:
+				direction = 1.0 if player.flip_h == false else -1.0
+			if autorun_tween == null or not autorun_tween.is_running():
+				update_autorun_speed()
+			target_max_speed = base_speed * autorun_speed_modifier
 		else:
-			velocity.x = move_toward(velocity.x,0.0,FRICTION * delta)
-			if was_on_floor_hit and not knockback_timer_shortened:
-				if knockback_timer.time_left > 1.0:
-					knockback_timer.start(1.0)
-				knockback_timer_shortened = true
+			target_max_speed = base_speed
+			#if autorun_tween and autorun_tween.is_running():
+				#autorun_tween.kill()
+			#autorun_speed_modifier = 1.0
+			
+		var target_velocity_x = direction * target_max_speed
+		# Aplica Movimento e Animações
+		apply_gravity_and_movement(direction,target_max_speed,delta)
+		handle_animations(delta)
+		handle_sprite_flip()
 		move_and_slide()
-		return
 
-	if GameManager.is_drunk:
-		direction = Input.get_axis("move_right","move_left")
-		if direction != 0:
-			GameManager.drunk_direction = direction
-		else:
-			GameManager.drunk_direction = 0.0
-		direction = GameManager.drunk_direction
-	if GameManager.is_invincible and not is_stealth_active:
-		activate_stealth_mode()
-	if GameManager.is_tank:
-		target_max_speed /= 2
-	if GameManager.is_small:
-		update_player_scale()
-		target_max_speed /= 1.5
-		
-	if GameManager.is_big:
-		update_player_scale()
-	if GameManager.is_autorunning:
-		is_running = true
-		if direction == 0.0:
-			direction = 1.0 if player.flip_h == false else -1.0
-		if autorun_tween == null or not autorun_tween.is_running():
-			update_autorun_speed()
-		target_max_speed = base_speed * autorun_speed_modifier
-	else:
-		target_max_speed = base_speed
-		#if autorun_tween and autorun_tween.is_running():
-			#autorun_tween.kill()
-		#autorun_speed_modifier = 1.0
-		
-	var target_velocity_x = direction * target_max_speed
-	# Aplica Movimento e Animações
-	apply_gravity_and_movement(direction,target_max_speed,delta)
-	handle_animations(delta)
-	handle_sprite_flip()
-	move_and_slide()
+			# Checa Dano contínuo
+		_check_enemy_overlay()
 
-		# Checa Dano contínuo
-	_check_enemy_overlay()
-
-		# Morte por Queda
-	if global_position.y > 1500:
-		die()
+			# Morte por Queda
+		if global_position.y > 1500:
+			_on_death()
 
 func update_player_scale() -> void:
 	if GameManager.is_small:
@@ -236,12 +238,30 @@ func update_player_scale() -> void:
 		scale = Vector2(1.5,1.5)
 	else:
 		scale = Vector2(1.0,1.0)
-	
+
+func _on_death() -> void:
+	die()
+
 func reset_camera(duration: float = 0.5) -> void:
 	if camera:
-		camera.drag_horizontal_offset = 0.2
+		camera.enabled = true
+		camera.make_current()
+		
+		# 1. Desativa a suavização para o teleport instantâneo
+		camera.reset_smoothing()
+		
+		# 2. Força o alinhamento imediato com a posição global do Player na Godot 4
+		camera.align()
+		
+		# 3. Reseta offsets de drag
+		camera.drag_horizontal_offset = 0.0
+		camera.drag_vertical_offset = 0.0
+		
+		# 4. Animação de zoom
 		var tween = create_tween()
-		tween.tween_property(camera,"zoom",Vector2(1.5,1.5),duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.tween_property(camera, "zoom", Vector2(1.5, 1.5), duration)\
+			.set_trans(Tween.TRANS_SINE)\
+			.set_ease(Tween.EASE_OUT)
 
 func apply_camera_zoom(target_zoom: Vector2, duration: float = 0.5) -> void:
 	if camera:
@@ -402,17 +422,77 @@ func play_weapon_sfx():
 		weapon_sfx.stream = random_sound
 		weapon_sfx.play() 
 
-func shoot_weapon1() -> void:
-	if current_bullets >= weapon1_limit:
-		return
+func _execute_weapon_attack(weapon_scene: PackedScene, is_ranged: bool = false, auto_shoot_bullet: bool = true) -> bool:
+	if not can_shoot or weapon_scene == null:
+		return false
+	var weapon_temp = weapon_scene.instantiate()
+	var bullet_limit = weapon_temp.bullet_limit if "bullet_limit" in weapon_temp else INF
+	var cd = weapon_temp.weapon_cooldown
+	weapon_temp.queue_free()
+	if GameManager.is_glass_cannon:
+		cd = maxf(0.08,cd * 0.60)
+		print(cd)
+	if is_ranged and current_bullets >= bullet_limit:
+		return false
 	can_shoot = false
-	get_tree().create_timer(weapon1_cooldown).timeout.connect(
+	get_tree().create_timer(cd).timeout.connect(
 		func(): can_shoot = true,
 		CONNECT_ONE_SHOT
 	)
 	play_weapon_sfx()
-	_shoot_bullet(weapon1_scene)
+	if is_ranged and auto_shoot_bullet:
+		_shoot_bullet(weapon_scene)
+	elif not is_ranged:
+		_attack_melee(weapon_scene)
+	return true
+func shoot_weapon1() -> void:
+	_execute_weapon_attack(weapon1_scene,true)
 
+func shoot_weapon2() -> void:
+	# 1. Validações básicas de disparo
+	if not can_shoot or weapon2_scene == null:
+		return
+		
+	# 2. Instancia a cena apenas para ler o limite de munição e cooldown
+	var weapon_temp = weapon2_scene.instantiate()
+	var bullet_limit = weapon_temp.bullet_limit if "bullet_limit" in weapon_temp else INF
+	var cd = weapon_temp.weapon_cooldown
+	weapon_temp.queue_free()
+	
+	# Checa limite de projgaéteis ativos
+	if current_bullets >= bullet_limit:
+		return
+		
+	# Trava o tiro imediatamente para evitar disparos em paralelo
+	can_shoot = false
+	
+	# Aplica o modificador Glass Cannon no cooldown base
+	if GameManager.is_glass_cannon:
+		cd = maxf(0.08, cd * 0.60)
+		
+	play_weapon_sfx()
+	
+	# 3. Dispara a rajada de 3 tiros com intervalo
+	var burst_interval: float = 0.10
+	if GameManager.is_glass_cannon:
+		burst_interval *= 0.60
+		
+	for i in range(3):
+		if not is_inside_tree():
+			can_shoot = true
+			return
+			
+		_shoot_bullet(weapon2_scene)
+		
+		if i < 2:
+			await get_tree().create_timer(burst_interval).timeout
+			
+	# 4. Inicia o cooldown da arma APÓS o término completo da rajada
+	get_tree().create_timer(cd).timeout.connect(
+		func(): can_shoot = true,
+		CONNECT_ONE_SHOT
+	)
+'''
 func shoot_weapon2() -> void:
 	if current_bullets >= weapon2_limit:
 		return
@@ -423,7 +503,7 @@ func shoot_weapon2() -> void:
 	if GameManager.is_glass_cannon:
 		effective_cooldown = maxf(0.05,weapon2_cooldown - 0.3)
 		burst_interval = 0.08
-
+		
 	
 	# 2. Duração total da animação de rajada de 3 tiros (2 intervalos de 0.15s)
 	var burst_duration: float = 2 * burst_interval
@@ -441,7 +521,7 @@ func shoot_weapon2() -> void:
 		_shoot_bullet(weapon2_scene)
 		if i < 2:
 			await get_tree().create_timer(burst_interval).timeout
-
+'''
 
 
 func _shoot_bullet(scene: PackedScene) -> void:
@@ -467,21 +547,9 @@ func _shoot_bullet(scene: PackedScene) -> void:
 		current_bullets = max(0,current_bullets - 1),
 		CONNECT_ONE_SHOT
 	)
-
+	
 func attack_weapon3() -> void:
-	can_shoot = false
-	if weapon3_scene == null:
-		return
-	var weapon = weapon3_scene.instantiate() as MeleeWeaponBase
-	get_parent().add_child(weapon)
-	
-	
-	get_tree().create_timer(weapon1_cooldown).timeout.connect(
-		func(): can_shoot = true,
-		CONNECT_ONE_SHOT
-	)
-	play_weapon_sfx()
-	_attack_melee(weapon3_scene)
+	_execute_weapon_attack(weapon3_scene,false)
 
 func _attack_melee(scene: PackedScene) -> void:
 	if scene == null:
@@ -490,6 +558,7 @@ func _attack_melee(scene: PackedScene) -> void:
 	var slash = scene.instantiate()
 	get_parent().add_child(slash)
 	
+	slash.global_position = global_position
 	var dir: int = 1
 	var base_offset: float = 40.0 if (is_running or abs(velocity.x) > 10.0) else 18.0
 	
@@ -515,8 +584,8 @@ func _attack_melee(scene: PackedScene) -> void:
 		slash.target = self
 		
 	# Caso alguma arma melee precise da variável target no futuro:
-	if "target" in slash:
-		slash.target = self
+	#if "target" in slash:
+		#slash.target = self
 
 
 	
@@ -582,56 +651,82 @@ func drop_through_platform():
 
 
 func respawn() -> void:
-	health = max_health
-	#var heart_ui = get_tree().get_first_node_in_group("heart_ui")
-	health_changed.emit(health,max_health)
+	# 1. Reseta física e zeramento de forças
 	velocity = Vector2.ZERO
+	is_knockback = false
+	knockback_timer_shortened = false
+	
+	if knockback_timer:
+		knockback_timer.stop()
+		
+	# 2. Reseta estados da Entity
+	is_dead = false
+	is_damaged = false
+	
+	# 3. Garante a invulnerabilidade de respawn (evita knockback e dano instantâneo)
+	is_invincible = true
+	is_player_invincible = true
+	
+	# 4. Teleporta o Player e atualiza a vida e câmera
 	global_position = spawn_position
+	health = max_health
+	health_changed.emit(health, max_health)
+	reset_camera()
+	
 	if player:
 		player.show()
 		player.modulate = Color.WHITE
-	is_invincible = false
-	is_player_invincible = false
-	is_damaged = false
-	
-	$Area2D.monitoring = true
+		
+	if $Area2D:
+		$Area2D.monitoring = true
+		
 	if invincibility_timer:
 		invincibility_timer.stop()
 		
+	# 5. Remove a invulnerabilidade após 1 segundo (tempo seguro)
+	get_tree().create_timer(1.0).timeout.connect(
+		func():
+			is_invincible = false
+			is_player_invincible = false,
+		CONNECT_ONE_SHOT
+	)
+		
 
 
-func die():
+func die() -> void:
+	# 1. Reseta modificadores do jogo e seleções no GameManager
 	GameManager.reset_modifiers()
+	#GameManager.trigger_modifier_selection()
+	
+	# 2. Reseta estados físicos e controles do Player
 	max_health = DEFAULT_MAX_HEALTH
-	health = max_health
-	health_changed.emit(health,max_health)
-	reset_camera()
-	respawn()
-	if player:
-		player.flip_h = false
-		player.play("Idle")
 	jump_left = max_jumps
 	has_jumped = false
 	fell_off_platform = false
 	air_control_locked = false
 	can_shoot = true
 	current_bullets = 0
-	health = max_health
-	health_changed.emit(health,max_health)
+	is_dead = true
+	# 3. Reseta visuais/animações
+	if player:
+		player.flip_h = false
+		player.play("Idle")
+		
+	# 4. Teleporta o jogador para o spawn e ajusta a câmera/vida
+	respawn()
 	
-	GameManager.trigger_modifier_selection()
-
 func take_damage(amount: int = 1) -> void:
 	if is_player_invincible:
 		return
 	super.take_damage(amount)
 	health_changed.emit(health,max_health)
+	if health <= 0 :
+		_on_death()
+		return
 	is_invincible = true
 	$Area2D.monitoring = false
 	_invincible_frames_blinks(player)
 	invincibility_timer.start()
-	if health <= 0 :
-		die()
 
 func add_max_health(amount: int, fill_heart: bool) -> void:
 	max_health += amount

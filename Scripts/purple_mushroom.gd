@@ -9,8 +9,7 @@ extends "res://Scripts/entity.gd" # Herda as propriedades básicas de uma entida
 
 # Variables de controle de física e componentes básicos
 var direction = 1                # Direção atual do movimento: 1 para Direita, -1 para Esquerda
-var gravity = ProjectSettings.get_setting("physics/2d/default_gravity") # Puxa o valor da gravidade do projeto
-
+var is_dead: bool = false
 # Componentes visuais, hitboxes e timers anexados ao Nó do Inimigo
 @onready var purple_mushroom: AnimatedSprite2D = $AnimatedSprite2D # Gerencia as animações do cogumelo
 @onready var hitbox = $Area2D                                     # Detecta colisões com projéteis/jogador
@@ -70,6 +69,14 @@ func _set_random_jump() -> void:
 # Loop principal de execução física
 func _physics_process(delta: float) -> void:
 	# --- ESTADO NO AR (CAINDO OU PULANDO) ---
+	if is_dead:
+		velocity.x = 0
+		move_and_slide()
+		return
+	if handle_knockback(delta):
+		return
+		
+	
 	if not is_on_floor():
 		is_jumping = true
 		velocity.y += gravity * delta # Aplica a gravidade continuamente para empurrar o corpo para baixo
@@ -107,18 +114,6 @@ func _physics_process(delta: float) -> void:
 			else:
 				# Chão totalmente plano e seguro à frente, avança normalmente na velocidade padrão
 				velocity.x = SPEED * direction
-			
-	# --- GERENCIAMENTO DE TIMERS DA IA (SÓ FUNCIONA FORA DO MODO DE FUGA) ---
-	if not is_escaping:
-		# Acumula tempo e vira de lado sozinho se andar tempo demais em linha reta
-		change_direction_timer += delta
-		if change_direction_timer >= time_to_change:
-			_flip_direction(direction * -1)
-			
-		# Acumula tempo e testa se pode pular de forma semi-aleatória (somente se estiver no solo)
-		#jump_timer += delta
-		#if jump_timer >= time_to_jump and is_on_floor():
-			#_handle_random_jump_ia()
 			
 	# --- MÁQUINA DE ANIMAÇÃO VISUAL ---
 	if is_jumping:
@@ -273,16 +268,48 @@ func _get_safe_jump_direction() -> int:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("slash"):
-		print("Slash entrou")
-		take_damage(2)
+		take_damage()
 
 func _on_body_entered(body: Node2D) -> void:
+	if body.is_in_group("piercing_bullet"):
+		if is_damaged:
+			return
+		take_damage()
+		return
 	if body.is_in_group("bullet"):
-		print("bullet entrou")
+
 		body.queue_free() 
-		take_damage(1)  
+		take_damage()  
+
+		
 
 func _on_death() -> void:
+	if is_dead:
+		return
+	is_dead = true
+	
+	# Para o movimento do cogumelo
+	velocity = Vector2.ZERO
+	
+	# Desativa apenas a Hitbox de causar/receber dano (Area2D)
+	hitbox.monitoring = false
+	hitbox.monitorable = false
+	if hitbox.has_node("CollisionShape2D"):
+		hitbox.get_node("CollisionShape2D").set_deferred("disabled", true)
+
+	# Toca a animação de morte garantindo que o nome existe
+	if purple_mushroom.sprite_frames.has_animation("Die"):
+		purple_mushroom.position = Vector2(0,3)
+		purple_mushroom.stop() # Interrompe a animação atual
+		purple_mushroom.play("Die")
+		await purple_mushroom.animation_finished
+	else:
+		print("AVISO: Animação 'Die' não encontrada no SpriteFrames de ", name)
+
+	# Desativa a colisão física do corpo principal após terminar a animação
+	if has_node("CollisionShape2D"):
+		$CollisionShape2D.set_deferred("disabled", true)
+		
 	queue_free()
 
 # Altera a variável de direção de movimentação e protege o inimigo de cometer "suicídio" andando em buracos visíveis

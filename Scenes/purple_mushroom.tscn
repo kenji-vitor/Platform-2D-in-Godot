@@ -46,6 +46,26 @@ shader = SubResource("VisualShader_f5edn")
 shader_parameter/enabled = false
 shader_parameter/ColorParameter = Color(1, 1, 1, 1)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_dmal0"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(96, 140, 32, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m8pxk"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(128, 140, 32, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h710g"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(160, 140, 32, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ygx2p"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(192, 140, 32, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a2bvw"]
+atlas = ExtResource("2_fkkin")
+region = Rect2(224, 140, 32, 20)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_8sq3t"]
 atlas = ExtResource("2_fkkin")
 region = Rect2(0, 32, 32, 32)
@@ -100,6 +120,26 @@ region = Rect2(96, 0, 32, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_ot03a"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dmal0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m8pxk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h710g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ygx2p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a2bvw")
+}],
+"loop": false,
+"name": &"Die",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_8sq3t")
@@ -159,21 +199,18 @@ script = ExtResource("1_f5edn")
 health = 5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1296220786]
-visible = false
 position = Vector2(0, 4)
 shape = SubResource("CircleShape2D_qqvbs")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1311450351]
 texture_filter = 1
 material = SubResource("ShaderMaterial_8sq3t")
-position = Vector2(-0.9999981, -4)
+position = Vector2(0, -4)
 scale = Vector2(0.9375, 0.9375)
 sprite_frames = SubResource("SpriteFrames_ot03a")
-animation = &"Move"
-autoplay = "Move"
+animation = &"Die"
 
 [node name="Area2D" type="Area2D" parent="." unique_id=68470310]
-visible = false
 position = Vector2(2, -8)
 collision_layer = 2
 collision_mask = 772

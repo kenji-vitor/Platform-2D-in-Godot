@@ -54,25 +54,34 @@ text = "Opcao 3"
 
 [node name="BtnReroll" type="Button" parent="Control" unique_id=464751848]
 layout_mode = 0
-offset_left = 1090.0
-offset_top = 604.0
-offset_right = 1145.0
-offset_bottom = 638.0
+offset_left = 1088.0
+offset_top = 569.0
+offset_right = 1143.0
+offset_bottom = 603.0
 
 [node name="LabelTitle" type="Label" parent="Control" unique_id=1343208149]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 6.0
+offset_top = -26.0
 offset_right = 1147.0
-offset_bottom = 183.0
+offset_bottom = 151.0
 text = "Choose a Modifier"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LblFlowers" type="Label" parent="Control" unique_id=536065482]
 layout_mode = 0
-offset_left = 960.0
+offset_left = 1016.0
 offset_top = 616.0
-offset_right = 1020.0
+offset_right = 1076.0
 offset_bottom = 639.0
 text = "Flowers"
+
+[node name="InfoReroll" type="Label" parent="Control" unique_id=376788375]
+layout_mode = 0
+offset_left = 411.0
+offset_top = 93.0
+offset_right = 758.0
+offset_bottom = 116.0
+text = "Aperta a tecla R para reroll"
+horizontal_alignment = 1

@@ -211,7 +211,7 @@ func _input(event: InputEvent) -> void:
 				choose_modifiers(1)
 			KEY_3, KEY_KP_3:
 				choose_modifiers(2)
-			KEY_R:
+			KEY_T:
 				call_deferred("trigger_modifier_selection")
 	if event is InputEventKey and event.pressed:
 		if event.echo:
