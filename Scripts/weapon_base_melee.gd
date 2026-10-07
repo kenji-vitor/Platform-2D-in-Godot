@@ -3,6 +3,7 @@ class_name MeleeWeaponBase
 extends Area2D
 #MELEE WEAPONS BASE
 
+var can_attack: bool = true
 
 @export var attack_duration: float = 0.25
 @export var damage = 0
@@ -54,7 +55,15 @@ func _apply_damage(target: Node2D) -> void:
 		var knockback_dir = Vector2(direction, -0.35).normalized()
 		target.apply_knockback(knockback_dir * knockback_force)
 	
-
+func trigger_attack_cooldown() -> void:
+	can_attack = false
+	var timer = get_tree().create_timer(weapon_cooldown)
+	await timer.timeout
+	
+	can_attack = true
+	
+func reset_cooldown() -> void:
+	can_attack = true
 
 
 	

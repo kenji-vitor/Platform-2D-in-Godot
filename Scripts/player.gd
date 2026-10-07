@@ -61,7 +61,7 @@ var is_player_invincible: bool :
 #var is_invincible = false
 
 var is_dead = false
-
+var is_respawning = false
 
 #Difficulty
 #var code_sequence = ["h","a","r","d"]
@@ -77,6 +77,8 @@ var current_gravity = gravity
 @onready var weapon2_scene = preload("res://Scenes/weapon_2.tscn")
 @onready var weapon3_scene = preload("res://Scenes/weapon_3.tscn")
 
+
+@export var respawn_attack_delay: float = 0.4
 
 @onready var hitbox = $Area2D
 var spawn_position: Vector2
@@ -121,6 +123,7 @@ var sfx_weapon_variations: Array[AudioStream] = [
 ]
 var weapon_list: Array = []
 func _ready() -> void:
+
 	#weapon_list.append(weapon)
 	skid_delay_timer = Timer.new()
 	skid_delay_timer.one_shot = true
@@ -164,7 +167,7 @@ func _physics_process(delta: float) -> void:
 	if not is_dead:
 		var direction = Input.get_axis("move_left","move_right")
 		var target_max_speed = (SPEED + 80.0) if is_running else SPEED
-		if GameManager.is_action_pressed("shoot") and not is_stealth_active:
+		if GameManager.is_action_pressed("shoot") and not is_stealth_active and can_shoot and not is_respawning:
 			active_weapon()
 		var base_speed: float = SPEED
 		if GameManager.is_s_speed:
@@ -652,6 +655,9 @@ func drop_through_platform():
 
 func respawn() -> void:
 	# 1. Reseta física e zeramento de forças
+	is_respawning = true
+	can_shoot = false
+
 	velocity = Vector2.ZERO
 	is_knockback = false
 	knockback_timer_shortened = false
@@ -683,17 +689,29 @@ func respawn() -> void:
 	if invincibility_timer:
 		invincibility_timer.stop()
 		
-	# 5. Remove a invulnerabilidade após 1 segundo (tempo seguro)
+	# 5. Remove a invulnerabilidade após 1 segundo
 	get_tree().create_timer(1.0).timeout.connect(
 		func():
 			is_invincible = false
 			is_player_invincible = false,
 		CONNECT_ONE_SHOT
 	)
+	
+	# 6. Libera o tiro/ataque após o delay de segurança
+	await get_tree().create_timer(respawn_attack_delay).timeout
+	if is_inside_tree() and not is_dead:
+		can_shoot = true
+		is_respawning = false
 		
+	
 
 
 func die() -> void:
+	is_dead = true
+	can_shoot = false
+	for child in get_children():
+		if child is MeleeWeaponBase or child.is_in_group("bullet") or child.is_in_group("piercing_bullet"):
+			child.queue_free()
 	# 1. Reseta modificadores do jogo e seleções no GameManager
 	GameManager.reset_modifiers()
 	#GameManager.trigger_modifier_selection()
@@ -704,14 +722,15 @@ func die() -> void:
 	has_jumped = false
 	fell_off_platform = false
 	air_control_locked = false
-	can_shoot = true
+	can_shoot = false
 	current_bullets = 0
-	is_dead = true
+
 	# 3. Reseta visuais/animações
 	if player:
 		player.flip_h = false
 		player.play("Idle")
-		
+	
+	await get_tree().process_frame
 	# 4. Teleporta o jogador para o spawn e ajusta a câmera/vida
 	respawn()
 	

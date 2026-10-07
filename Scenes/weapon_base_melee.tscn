@@ -2,6 +2,6 @@
 
 [ext_resource type="Script" uid="uid://d2gy4esqs7gfo" path="res://Scripts/weapon_base_melee.gd" id="1_g5p8g"]
 
-[node name="WeaponBaseMelee" type="Node2D" unique_id=1939697270 groups=["slash"]]
+[node name="WeaponBaseMelee" type="Node2D" unique_id=1939697270]
 script = ExtResource("1_g5p8g")
 attack_duration = 0.05
