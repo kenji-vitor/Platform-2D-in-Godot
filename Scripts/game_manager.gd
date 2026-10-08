@@ -169,6 +169,8 @@ func apply_modifier(mod_name: String, duration: float) -> void:
 			is_slippery = true
 		"is_autorunning":
 			is_autorunning = true
+		"is_invincible":
+			is_invincible = true
 	print("Modificador ativo: {0} por {1}s".format([mod_name,duration]))
 	var current_session = active_modifier_session
 	await get_tree().create_timer(duration).timeout

@@ -20,7 +20,8 @@ var knockback_force = Vector2(100,-250)
 var is_knockback = false
 
 @onready var attack_point = $ShootPoint
-var current_weapon = 3
+var current_weapon = 1
+var previous_weapon = 1
 
 const DEFAULT_MAX_JUMPS = 2
 @export var max_jumps: int = DEFAULT_MAX_JUMPS
@@ -145,14 +146,33 @@ func _input(event: InputEvent) -> void:
 			if jump_left > 0 or jump_forgiveness_counter > 0.0:
 				if not is_on_floor() and jump_forgiveness_counter > 0.0 and jump_left == max_jumps:
 					jump_forgiveness_counter = 0.0
-				
 				jump()
 
-	if Input.is_action_just_pressed("swap_weapon"):
-		swap_weapon()
+	#if Input.is_action_just_pressed("swap_weapon"):
+		#swap_weapon()
 
 	if GameManager.is_action_just_pressed("run") and not GameManager.is_tank:
 		is_running = not is_running
+	if event is InputEventKey and event.pressed and not event.echo:
+		if can_swap:
+			if event.keycode == KEY_1 and current_weapon != 1:
+				previous_weapon = current_weapon
+				current_weapon = 1
+				swap_weapon()
+			elif event.keycode == KEY_2 and current_weapon != 2:
+				previous_weapon = current_weapon
+				current_weapon = 2
+				swap_weapon()
+			elif event.keycode == KEY_3 and current_weapon != 3:
+				previous_weapon = current_weapon
+				current_weapon = 3
+				swap_weapon()
+			elif event.keycode == KEY_Q and previous_weapon != current_weapon:
+				var temp = current_weapon
+				current_weapon = previous_weapon
+				previous_weapon = temp
+				swap_weapon()
+			
 		# Tiro estático ou em movimento
 	#if GameManager.is_action_pressed("shoot") and not is_stealth_active:
 		#shoot()
@@ -171,9 +191,9 @@ func _physics_process(delta: float) -> void:
 			active_weapon()
 		var base_speed: float = SPEED
 		if GameManager.is_s_speed:
-			print("S speed aplicado")
+			#print("S speed aplicado")
 			base_speed = SPEED * 3
-			print("Velocidade com s_speed: ",base_speed)
+			#print("Velocidade com s_speed: ",base_speed)
 			apply_camera_zoom(Vector2(2.0,2.0))
 		elif is_running:
 			base_speed = SPEED + 80.0
@@ -197,7 +217,7 @@ func _physics_process(delta: float) -> void:
 			else:
 				GameManager.drunk_direction = 0.0
 			direction = GameManager.drunk_direction
-		if GameManager.is_invincible and not is_stealth_active:
+		if GameManager.is_invincible: 
 			activate_stealth_mode()
 		if GameManager.is_tank:
 			target_max_speed /= 2
@@ -280,28 +300,33 @@ func update_autorun_speed() -> void:
 	
 
 func activate_stealth_mode(duration: float = randf_range(4.0,6.0))-> void:
+		if is_stealth_active:
+			return
 		is_stealth_active = true
 		set_stealth_state(true)
 		can_shoot = false
-		stealth_timer = get_tree().create_timer(duration)
-		await stealth_timer.timeout
+		
+		await get_tree().create_timer(duration).timeout
+
 		set_stealth_state(false)
 		GameManager.is_invincible = false
 		is_stealth_active = false
-		can_shoot = true
+		
+		await get_tree().create_timer(0.5).timeout
+		
+		if is_inside_tree() and not is_dead and not is_respawning:
+			can_shoot = true
 		
 func set_stealth_state(active: bool) -> void:
+	print("stealth state ativado")
 	is_invincible = active
-	
 	if active:
 		player.modulate.a = 0.0
-		
 		jump_mult = randf_range(0.85,1.3)
 		speed_mult = randf_range(0.6,1.3)
 	else:
 		if blink_tween and blink_tween.is_running():
 			blink_tween.kill()
-			
 		player.modulate.a = 1.0
 		jump_mult = 1.0
 		speed_mult = 1.0
@@ -405,9 +430,9 @@ func set_random_gravity() -> void:
 func swap_weapon() -> void:
 	if not can_swap:
 		return
-	current_weapon = 1# if current_weapon == 1 else 1
+	#current_weapon = 1# if current_weapon == 1 else 1
 	can_swap = false
-	get_tree().create_timer(1.0).timeout.connect(func(): can_swap = true)
+	get_tree().create_timer(0.3).timeout.connect(func(): can_swap = true)
 
 func active_weapon() -> void:
 	if not can_shoot:
@@ -419,6 +444,8 @@ func active_weapon() -> void:
 			shoot_weapon2()
 		3:
 			attack_weapon3()
+	
+			
 func play_weapon_sfx():
 	if sfx_weapon_variations.size() > 0:
 		var random_sound = sfx_weapon_variations.pick_random()
@@ -431,23 +458,29 @@ func _execute_weapon_attack(weapon_scene: PackedScene, is_ranged: bool = false, 
 	var weapon_temp = weapon_scene.instantiate()
 	var bullet_limit = weapon_temp.bullet_limit if "bullet_limit" in weapon_temp else INF
 	var cd = weapon_temp.weapon_cooldown
-	weapon_temp.queue_free()
+	#weapon_temp.queue_free()
+	if is_ranged and current_bullets >= bullet_limit:
+		_shoot_bullet(weapon_scene)
 	if GameManager.is_glass_cannon:
 		cd = maxf(0.08,cd * 0.60)
-		print(cd)
-	if is_ranged and current_bullets >= bullet_limit:
-		return false
 	can_shoot = false
+	
 	get_tree().create_timer(cd).timeout.connect(
-		func(): can_shoot = true,
+		func(): 
+			if is_inside_tree() and not is_dead and not is_respawning and not is_stealth_active:
+				can_shoot = true,
 		CONNECT_ONE_SHOT
 	)
 	play_weapon_sfx()
 	if is_ranged and auto_shoot_bullet:
+		weapon_temp.queue_free()
 		_shoot_bullet(weapon_scene)
 	elif not is_ranged:
+		weapon_temp.queue_free()
 		_attack_melee(weapon_scene)
 	return true
+
+	
 func shoot_weapon1() -> void:
 	_execute_weapon_attack(weapon1_scene,true)
 
@@ -715,7 +748,6 @@ func die() -> void:
 	# 1. Reseta modificadores do jogo e seleções no GameManager
 	GameManager.reset_modifiers()
 	#GameManager.trigger_modifier_selection()
-	
 	# 2. Reseta estados físicos e controles do Player
 	max_health = DEFAULT_MAX_HEALTH
 	jump_left = max_jumps
